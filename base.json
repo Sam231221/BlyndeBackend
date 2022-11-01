@@ -1,0 +1,626 @@
+[
+{
+    "model": "Mbase.category",
+    "pk": 1,
+    "fields": {
+        "name": "Men's",
+        "slug": "mens"
+    }
+},
+{
+    "model": "Mbase.category",
+    "pk": 2,
+    "fields": {
+        "name": "Women's",
+        "slug": "womens"
+    }
+},
+{
+    "model": "Mbase.category",
+    "pk": 3,
+    "fields": {
+        "name": "Electronics",
+        "slug": "electronics"
+    }
+},
+{
+    "model": "Mbase.category",
+    "pk": 4,
+    "fields": {
+        "name": "HouseHold",
+        "slug": "household"
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 1,
+    "fields": {
+        "name": "Desktop",
+        "slug": "desktop",
+        "category": 3
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 2,
+    "fields": {
+        "name": "Laptop",
+        "slug": "laptop",
+        "category": 3
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 3,
+    "fields": {
+        "name": "Camera",
+        "slug": "camera",
+        "category": 3
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 4,
+    "fields": {
+        "name": "Headphones",
+        "slug": "headphones",
+        "category": 3
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 5,
+    "fields": {
+        "name": "Formal",
+        "slug": "formal",
+        "category": 1
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 6,
+    "fields": {
+        "name": "Casual",
+        "slug": "casual",
+        "category": 1
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 7,
+    "fields": {
+        "name": "Category",
+        "slug": "category",
+        "category": 1
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 8,
+    "fields": {
+        "name": "Jacket",
+        "slug": "jacket",
+        "category": 1
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 9,
+    "fields": {
+        "name": "Spectacles",
+        "slug": "spectacles",
+        "category": 1
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 10,
+    "fields": {
+        "name": "Shoes",
+        "slug": "shoes",
+        "category": 1
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 11,
+    "fields": {
+        "name": "Ear rings",
+        "slug": "ear-rings",
+        "category": 2
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 12,
+    "fields": {
+        "name": "MakeupKit",
+        "slug": "makeupkit",
+        "category": 2
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 13,
+    "fields": {
+        "name": "Sari",
+        "slug": "sari",
+        "category": 2
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 14,
+    "fields": {
+        "name": "One piece",
+        "slug": "one-piece",
+        "category": 2
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 15,
+    "fields": {
+        "name": "Blankets",
+        "slug": "blankets",
+        "category": 4
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 16,
+    "fields": {
+        "name": "Bath Towels",
+        "slug": "bath-towels",
+        "category": 4
+    }
+},
+{
+    "model": "Mbase.genre",
+    "pk": 17,
+    "fields": {
+        "name": "Kitchen Containers",
+        "slug": "kitchen-containers",
+        "category": 4
+    }
+},
+
+{
+    "model": "Mbase.product",
+    "pk": 1,
+    "fields": {
+        "user": 1,
+        "name": "Airpods Wireless Bluetooth Headphones",
+        "image": "airpods.jpg",
+        "brand": "Apple",
+        "category": "Electronics",
+        "description": "Bluetooth technology lets you connect it with compatible devices wirelessly High-quality AAC audio offers immersive listening experience Built-in microphone allows you to take calls while working.",
+        "rating": "4.50",
+        "numReviews": 12,
+        "price": "89.99",
+        "countInStock": 10,
+        "createdAt": "2022-09-02T05:45:39.930Z"
+    }
+},
+{
+    "model": "Mbase.product",
+    "pk": 2,
+    "fields": {
+        "user": 1,
+        "name": "iPhone 11 Pro 256GB Memory",
+        "image": "phone.jpg",
+        "brand": "Apple",
+        "category": "Electronics",
+        "description": "Introducing the iPhone 11 Pro. A transformative triple-camera system that adds tons of capability without complexity. An unprecedented leap in battery life",
+        "rating": "4.00",
+        "numReviews": 0,
+        "price": "599.99",
+        "countInStock": 0,
+        "createdAt": "2022-09-02T05:58:33.220Z"
+    }
+},
+{
+    "model": "Mbase.product",
+    "pk": 3,
+    "fields": {
+        "user": 1,
+        "name": "Cannon EOS 80D DSLR Camera",
+        "image": "camera.jpg",
+        "brand": "Cannon",
+        "category": "Electronics",
+        "description": "Characterized by versatile imaging specs, the Canon EOS 80D further clarifies itself using a pair of robust focusing systems and an intuitive design",
+        "rating": "3.00",
+        "numReviews": 12,
+        "price": "929.99",
+        "countInStock": 0,
+        "createdAt": "2022-09-03T05:30:50.381Z"
+    }
+},
+{
+    "model": "Mbase.product",
+    "pk": 4,
+    "fields": {
+        "user": 1,
+        "name": "Sony Playstation 4 Pro White Version",
+        "image": "playstation.jpg",
+        "brand": "Sony",
+        "category": "Electronics",
+        "description": "The ultimate home entertainment center starts with PlayStation. Whether you are into gaming, HD movies, television, music",
+        "rating": "5.00",
+        "numReviews": 12,
+        "price": "399.99",
+        "countInStock": 2,
+        "createdAt": "2022-09-03T05:31:45.792Z"
+    }
+},
+{
+    "model": "Mbase.product",
+    "pk": 5,
+    "fields": {
+        "user": 1,
+        "name": "Logitech G-Series Gaming Mouse",
+        "image": "mouse.jpg",
+        "brand": "Logitech",
+        "category": "Electronics",
+        "description": "Get a better handle on your games with this Logitech LIGHTSYNC gaming mouse. The six programmable buttons allow customization for a smooth playing experience",
+        "rating": "3.50",
+        "numReviews": 2,
+        "price": "499.67",
+        "countInStock": 2,
+        "createdAt": "2022-09-03T05:32:52.391Z"
+    }
+},
+{
+    "model": "Mbase.product",
+    "pk": 6,
+    "fields": {
+        "user": 1,
+        "name": "Amazon Echo Dot 3rd Generation",
+        "image": "alexa.jpg",
+        "brand": "Amazon",
+        "category": "Electronics",
+        "description": "Meet Echo Dot - Our most popular smart speaker with a fabric design. It is our most compact smart speaker that fits perfectly into small space",
+        "rating": "4.00",
+        "numReviews": 15,
+        "price": "29.00",
+        "countInStock": 0,
+        "createdAt": "2022-09-03T05:33:40.821Z"
+    }
+},
+
+{
+    "model": "Mbase.product",
+    "pk": 8,
+    "fields": {
+        "user": 4,
+        "name": "Sample Name",
+        "image": "/placeholder.png",
+        "brand": "Sample Brand",
+        "category": "Sample Category",
+        "description": "",
+        "rating": null,
+        "numReviews": 0,
+        "price": "0.00",
+        "countInStock": 0,
+        "createdAt": "2022-09-05T16:40:48.963Z"
+    }
+},
+{
+    "model": "Mbase.product",
+    "pk": 9,
+    "fields": {
+        "user": 4,
+        "name": "Running & Trekking Shoes - White",
+        "image": "sports-1.jpg",
+        "brand": "Sample Brand",
+        "category": "Sample Category",
+        "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quam dolorum assumenda voluptatem voluptatibus debitis earum nisi inventore veritatis aperiam recusandae deserunt magni, perferendis fugit totam qui! Unde qui necessitatibus aliquid asperiores esse quasi, laboriosam animi eligendi aperiam placeat sequi maxime labore commodi molestias, minus impedit magnam ullam ipsa eius nulla.",
+        "rating": "3.00",
+        "numReviews": 0,
+        "price": "40.00",
+        "countInStock": 13,
+        "createdAt": "2022-09-05T16:40:53.521Z"
+    }
+},
+{
+    "model": "Mbase.product",
+    "pk": 10,
+    "fields": {
+        "user": 4,
+        "name": "Digital Watch",
+        "image": "banner-07.jpg",
+        "brand": "Neo",
+        "category": "Clothing",
+        "description": "",
+        "rating": "3.00",
+        "numReviews": 0,
+        "price": "700.00",
+        "countInStock": 5,
+        "createdAt": "2022-09-05T16:41:49.202Z"
+    }
+},
+{
+    "model": "Mbase.order",
+    "pk": 8,
+    "fields": {
+        "user": 4,
+        "paymentMethod": "PayPal",
+        "taxPrice": "122.92",
+        "shippingPrice": "10.00",
+        "totalPrice": "1631.93",
+        "isPaid": true,
+        "paidAt": "2022-09-05T17:32:41.883Z",
+        "isDelivered": false,
+        "deliveredAt": null,
+        "createdAt": "2022-09-05T10:01:33.846Z"
+    }
+},
+{
+    "model": "Mbase.order",
+    "pk": 9,
+    "fields": {
+        "user": 4,
+        "paymentMethod": "PayPal",
+        "taxPrice": "164.00",
+        "shippingPrice": "10.00",
+        "totalPrice": "2173.95",
+        "isPaid": true,
+        "paidAt": "2022-09-05T18:10:05.907Z",
+        "isDelivered": true,
+        "deliveredAt": "2022-09-05T18:27:25.091Z",
+        "createdAt": "2022-09-05T11:56:45.066Z"
+    }
+},
+{
+    "model": "Mbase.order",
+    "pk": 10,
+    "fields": {
+        "user": 4,
+        "paymentMethod": "PayPal",
+        "taxPrice": "65.60",
+        "shippingPrice": "10.00",
+        "totalPrice": "875.58",
+        "isPaid": false,
+        "paidAt": null,
+        "isDelivered": false,
+        "deliveredAt": null,
+        "createdAt": "2022-09-05T12:45:31.220Z"
+    }
+},
+{
+    "model": "Mbase.order",
+    "pk": 11,
+    "fields": {
+        "user": 4,
+        "paymentMethod": "PayPal",
+        "taxPrice": "32.80",
+        "shippingPrice": "10.00",
+        "totalPrice": "442.79",
+        "isPaid": false,
+        "paidAt": null,
+        "isDelivered": false,
+        "deliveredAt": null,
+        "createdAt": "2022-09-05T13:08:36.067Z"
+    }
+},
+{
+    "model": "Mbase.order",
+    "pk": 12,
+    "fields": {
+        "user": 4,
+        "paymentMethod": "PayPal",
+        "taxPrice": "32.80",
+        "shippingPrice": "10.00",
+        "totalPrice": "442.79",
+        "isPaid": false,
+        "paidAt": null,
+        "isDelivered": false,
+        "deliveredAt": null,
+        "createdAt": "2022-09-06T07:42:20.127Z"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 1,
+    "fields": {
+        "product": 5,
+        "order": null,
+        "name": "Logitech G-Series Gaming Mouse",
+        "qty": 2,
+        "price": "499.67",
+        "image": "/images/mouse.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 2,
+    "fields": {
+        "product": 5,
+        "order": null,
+        "name": "Logitech G-Series Gaming Mouse",
+        "qty": 2,
+        "price": "499.67",
+        "image": "/images/mouse.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 3,
+    "fields": {
+        "product": 3,
+        "order": null,
+        "name": "Cannon EOS 80D DSLR Camera",
+        "qty": 5,
+        "price": "929.99",
+        "image": "/images/camera.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 4,
+    "fields": {
+        "product": 5,
+        "order": null,
+        "name": "Logitech G-Series Gaming Mouse",
+        "qty": 1,
+        "price": "499.67",
+        "image": "/images/mouse.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 5,
+    "fields": {
+        "product": 5,
+        "order": null,
+        "name": "Logitech G-Series Gaming Mouse",
+        "qty": 1,
+        "price": "499.67",
+        "image": "/images/mouse.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 6,
+    "fields": {
+        "product": 5,
+        "order": null,
+        "name": "Logitech G-Series Gaming Mouse",
+        "qty": 1,
+        "price": "499.67",
+        "image": "/images/mouse.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 7,
+    "fields": {
+        "product": 5,
+        "order": null,
+        "name": "Logitech G-Series Gaming Mouse",
+        "qty": 1,
+        "price": "499.67",
+        "image": "/images/mouse.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 8,
+    "fields": {
+        "product": 5,
+        "order": 8,
+        "name": "Logitech G-Series Gaming Mouse",
+        "qty": 3,
+        "price": "499.67",
+        "image": "/images/mouse.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 9,
+    "fields": {
+        "product": 4,
+        "order": 9,
+        "name": "Sony Playstation 4 Pro White Version",
+        "qty": 5,
+        "price": "399.99",
+        "image": "/images/playstation.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 10,
+    "fields": {
+        "product": 4,
+        "order": 10,
+        "name": "Sony Playstation 4 Pro White Version",
+        "qty": 2,
+        "price": "399.99",
+        "image": "/images/playstation.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 11,
+    "fields": {
+        "product": 4,
+        "order": 11,
+        "name": "Sony Playstation 4 Pro White Version",
+        "qty": 1,
+        "price": "399.99",
+        "image": "/images/playstation.jpg"
+    }
+},
+{
+    "model": "Mbase.orderitem",
+    "pk": 12,
+    "fields": {
+        "product": 4,
+        "order": 12,
+        "name": "Sony Playstation 4 Pro White Version",
+        "qty": 1,
+        "price": "399.99",
+        "image": "/images/playstation.jpg"
+    }
+},
+{
+    "model": "Mbase.shippingaddress",
+    "pk": 8,
+    "fields": {
+        "order": 8,
+        "address": "Machhapuchre Tole-3",
+        "city": "Pokhara",
+        "postalCode": "33700",
+        "country": "Nepal",
+        "shippingPrice": null
+    }
+},
+{
+    "model": "Mbase.shippingaddress",
+    "pk": 9,
+    "fields": {
+        "order": 9,
+        "address": "Machhapuchre Tole-3",
+        "city": "Pokhara",
+        "postalCode": "33700",
+        "country": "Nepal",
+        "shippingPrice": null
+    }
+},
+{
+    "model": "Mbase.shippingaddress",
+    "pk": 10,
+    "fields": {
+        "order": 10,
+        "address": "Machhapuchre Tole-3",
+        "city": "Pokhara",
+        "postalCode": "33700",
+        "country": "Nepal",
+        "shippingPrice": null
+    }
+},
+{
+    "model": "Mbase.shippingaddress",
+    "pk": 11,
+    "fields": {
+        "order": 11,
+        "address": "Machhapuchre Tole-3",
+        "city": "Pokhara",
+        "postalCode": "33700",
+        "country": "Nepal",
+        "shippingPrice": null
+    }
+},
+{
+    "model": "Mbase.shippingaddress",
+    "pk": 12,
+    "fields": {
+        "order": 12,
+        "address": "Machhapuchre Tole-3",
+        "city": "Pokhara",
+        "postalCode": "33700",
+        "country": "Nepal",
+        "shippingPrice": null
+    }
+}
+]
