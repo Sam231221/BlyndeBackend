@@ -16,16 +16,13 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-k=ugavelz2u10o9m=yxah#lpz6758^mmw5n%q$xupb#7fo&xtk'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'walmart12.herokuapp.com']
 
 
 # Application definition
@@ -41,6 +38,7 @@ INSTALLED_APPS = [
     'Mbase.apps.MbaseConfig',
     'rest_framework',
     "corsheaders",
+    "whitenoise",
 ]
 
 
@@ -166,6 +164,12 @@ MEDIA_ROOT = BASE_DIR / 'static/images'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://walmart12.netlify.app/",
+
+]
+
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
