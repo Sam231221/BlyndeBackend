@@ -81,7 +81,9 @@ SIMPLE_JWT = {
 MIDDLEWARE = [
        "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',\
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -158,6 +160,8 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
     BASE_DIR / 'frontend/build/static'
 ]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 #Images or Media from django form will be stored here.
 MEDIA_ROOT = BASE_DIR / 'static/images'
@@ -167,7 +171,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://walmart12.netlify.app/",
-
 ]
 
 
