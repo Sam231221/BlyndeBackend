@@ -1,8 +1,9 @@
-from pyexpat import model
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.utils.html import mark_safe
+from django.db import models
+from datetime import timedelta
 
 
 class Color(models.Model):
@@ -89,6 +90,27 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+
+class DiscountOffers(models.Model):
+    name = models.CharField(max_length=200, null=True, blank=True)
+    thumbnail = models.ImageField(null=True)
+    price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    on_sale = models.BooleanField(default=False)
+    sale_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    countInStock = models.IntegerField(null=True, blank=True, default=0)
+    start_date = models.DateTimeField()
+    no_of_days = models.PositiveIntegerField(
+        null=True,
+    )
+
+    end_date = models.DateField(blank=True, null=True)  # Make end_date nullable
+
+    def __str__(self):
+        return self.name
 
 
 class ImageAlbum(models.Model):

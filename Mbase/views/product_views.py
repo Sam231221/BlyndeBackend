@@ -1,15 +1,20 @@
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
+from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
-from Mbase.models import Product, Review, Color
+from django.shortcuts import get_object_or_404
+from Mbase.models import Product, Review, Color, Category, ImageAlbum, DiscountOffers
 from Mbase.serializers import ProductSerializer
 
 from rest_framework import status
-
-from Mbase.models import Category, ImageAlbum
-from Mbase.serializers import CategorySerializer, ImageAlbumSerializer, ColorSerializer
+from Mbase.serializers import (
+    CategorySerializer,
+    DiscountOffersSerializer,
+    ImageAlbumSerializer,
+    ColorSerializer,
+)
 
 
 """
@@ -120,6 +125,33 @@ def getDealProducts(request):
         product["images"] = ImageAlbumSerializer(imagealbum_objs, many=True).data
 
     return Response(serialized_products)
+
+
+class DiscountOffersView(APIView):
+    def get(self, request, format=None):
+        discounts = DiscountOffers.objects.all()
+        serializer = DiscountOffersSerializer(discounts, many=True)
+        return Response(serializer.data)
+
+
+class DiscountOfferDeleteView(APIView):
+    """
+    API endpoint to delete a discount offer by ID.
+    """
+
+    def delete(self, request, pk):
+        try:
+            offer = get_object_or_404(DiscountOffers, pk=pk)
+            offer.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except DiscountOffers.DoesNotExist:
+            return JsonResponse(
+                {"error": "Discount offer not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return JsonResponse(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 @api_view(["GET"])

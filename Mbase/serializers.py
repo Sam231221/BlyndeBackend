@@ -11,6 +11,7 @@ from .models import (
     ShippingAddress,
     Review,
     Color,
+    DiscountOffers,
 )
 
 
@@ -74,6 +75,17 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = "__al__"
+
+
+class DiscountOffersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiscountOffers
+        fields = "__all__"  # Include all fields
+
+    # def to_representation(self, instance):
+    #     response = super().to_representation(instance)
+    #     response["is_active"] = instance.is_active()  # Add a field for active status
+    #     return response
 
 
 class ProductSerializer(serializers.ModelSerializer):

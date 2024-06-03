@@ -2,6 +2,12 @@ from django.urls import path
 from Mbase.views import product_views as views
 
 urlpatterns = [
+    path("discountoffers/", views.DiscountOffersView.as_view(), name="discountoffers"),
+    path(
+        "discountoffers/<int:pk>/delete/",
+        views.DiscountOfferDeleteView.as_view(),
+        name="delete_discount_offer",
+    ),
     path("categories/", views.getCategories, name="categories"),
     path("colors/", views.getAllColors, name="colors"),
     path("", views.getProducts, name="products"),

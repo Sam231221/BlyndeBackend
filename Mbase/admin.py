@@ -9,9 +9,12 @@ from .models import (
     OrderItem,
     Review,
     ShippingAddress,
+    DiscountOffers,
 )
 
-admin.site.register((Category, Color, Genre, Order, OrderItem, Review, ShippingAddress))
+admin.site.register(
+    (Category, DiscountOffers, Color, Genre, Order, OrderItem, Review, ShippingAddress)
+)
 
 
 class ImageAlbumAdmin(admin.TabularInline):
