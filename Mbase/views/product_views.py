@@ -49,7 +49,7 @@ def getProduct(request, pk):
 def getCategories(request):
     categories_obj = Category.objects.all().exclude(name__icontains="deals")
     categories = CategorySerializer(categories_obj, many=True).data
-    print(categories)
+
     for category in categories:
         category_obj = Category.objects.filter(id=category["id"]).first()
         category["genres"] = list(category_obj.genre_set.values())
@@ -78,7 +78,6 @@ def getProducts(request):
         query = ""
 
     products = Product.objects.filter(name__icontains=query).order_by("-createdAt")
-    print("p:", products)
     page = request.query_params.get("page")
     paginator = Paginator(products, 4)
 
@@ -209,7 +208,6 @@ def createProduct(request):
 def updateProduct(request, pk):
     data = request.data
     product = Product.objects.get(_id=pk)
-    print(data["category"])
     product.name = data["name"]
     product.price = data["price"]
     product.brand = data["brand"]

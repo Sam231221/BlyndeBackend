@@ -22,9 +22,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     '''
     def validate(self, attrs):
         data = super().validate(attrs)
-        print('\ntoken data:', data)
         serializer = UserSerializerWithToken(self.user).data
-        print('\nserializer:', serializer)
+
         '''
         serializer: {'id': 1, '_id': 1, 'username': 'Sam', 'email': 'samirshahi9882@gmail.com', 'name': 'samirshahi9882@gmail.com', 'isAdmin': True, 
         'token': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjY0Nzg0MDEyLCJpYXQiOjE2NjIxOTIwMTIsImp0aSI6IjFhYzRhNjFjYTgwMzQwNGE4ZmUwNDIzZTM4YTEyNDY1IiwidXNlcl9pZCI6MX0.dnV2PalNENdhO8Iw3_RE2A4Ipq4gTRBELzfyXNuRMf8'}    
@@ -33,7 +32,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         for key, value in serializer.items():
             data[key] = value
-        print('data:', data)
         return data
 
 
@@ -45,7 +43,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 def registerUser(request):
     #data is generally dictionary.
     data = request.data
-    print(data)
+
     try:
         user = User.objects.create(
             first_name=data['name'],
@@ -54,7 +52,6 @@ def registerUser(request):
             #make_password() is a function that hashes password.
             password=make_password(data['password'])
         )
-        print('user:', user)
         serializer = UserSerializerWithToken(user, many=False)
         
         #serializer.data is  a json 
@@ -88,7 +85,6 @@ def updateUserProfile(request):
 @permission_classes([IsAuthenticated])
 def getUserProfile(request):
     user = request.user
-    print('user:',user)
     serializer = UserSerializer(user, many=False)
     return Response(serializer.data)
 

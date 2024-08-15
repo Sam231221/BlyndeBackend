@@ -16,7 +16,6 @@ from django.utils import timezone
 def addOrderItems(request):
     user = request.user
     data = request.data
-    print('data:', data)
 
     orderItems = data['orderItems']
 
@@ -57,8 +56,6 @@ def addOrderItems(request):
                 thumbnail=product.thumbnail.url,
             )
 
-            # (4) Update stock
-            print('\n\n', type(product.countInStock), type(item.qty))
             product.countInStock -= item.qty
             product.save()
 
@@ -86,7 +83,6 @@ def getOrderById(request, pk):
 def getMyOrders(request):
     user = request.user
     orders = user.order_set.order_by('-_id')
-    print(orders)
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
 
