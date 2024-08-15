@@ -1,2 +1,4 @@
+.env
 staticfiles
 ZVirtual
+__pycache__/
