@@ -102,12 +102,10 @@ class DiscountOffers(models.Model):
         max_digits=10, decimal_places=2, null=True, blank=True
     )
     countInStock = models.IntegerField(null=True, blank=True, default=0)
-    start_date = models.DateTimeField()
-    no_of_days = models.PositiveIntegerField(
-        null=True,
-    )
 
-    end_date = models.DateField(blank=True, null=True)  # Make end_date nullable
+    # make correction
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)  # Make end_date nullable
 
     def __str__(self):
         return self.name
