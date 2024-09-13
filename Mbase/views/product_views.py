@@ -1,16 +1,18 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
+from django.db.models import Q
 from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404
-from Mbase.models import Product, Review, Color, Category, ImageAlbum, DiscountOffers
+from Mbase.models import Product,Size, Review, Color, Category, ImageAlbum, DiscountOffers
 from Mbase.serializers import ProductSerializer
 
-from rest_framework import status
+from rest_framework import status, viewsets, generics
 from Mbase.serializers import (
     CategorySerializer,
+    SizeSerializer,
     DiscountOffersSerializer,
     ImageAlbumSerializer,
     ColorSerializer,
@@ -63,6 +65,11 @@ def getAllProducts(request):
     serialized_data = ProductSerializer(products, many=True).data
     return Response(serialized_data)
 
+class GetAllSizes(APIView):
+ def get(self, request):
+        sizes = Size.objects.all()
+        serializer = SizeSerializer(sizes, many=True)
+        return Response(serializer.data)
 
 @api_view(["GET"])
 def getAllColors(request):
@@ -105,7 +112,7 @@ def getProducts(request):
 
 @api_view(["GET"])
 def getTopProducts(request):
-    products = Product.objects.filter(rating__gte=4).order_by("-rating")[0:5]
+    products = Product.objects.filter(rating__gte=5).order_by("-rating")[0:5]
     serialized_products = ProductSerializer(products, many=True).data
     for product in serialized_products:
         product_obj = Product.objects.filter(_id=product["_id"]).first()
@@ -125,6 +132,22 @@ def getDealProducts(request):
 
     return Response(serialized_products)
 
+class RelatedProductsAPIView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        product_id = self.kwargs['product_id']
+        product = Product.objects.get(_id=product_id)
+
+        # Logic to determine related products (customize based on your needs)
+        related_products = Product.objects.filter(
+            # Consider these factors (modify based on your priorities):
+            Q(categories__in=product.categories.all()) |  
+            Q(colors__in=product.colors.all()),        
+            Q(brand=product.brand)                     
+        ).exclude(_id=product_id) 
+
+        return related_products.distinct() 
 
 class DiscountOffersView(APIView):
     def get(self, request, format=None):
@@ -262,7 +285,7 @@ def createProductReview(request, pk):
 
     # 3 - Create review
     else:
-        review = Review.objects.create(
+        Review.objects.create(
             user=user,
             product=product,
             name=user.first_name,

@@ -6,6 +6,7 @@ from .models import (
     Genre,
     ImageAlbum,
     Product,
+    Size,
     Order,
     OrderItem,
     ShippingAddress,
@@ -66,10 +67,23 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ColorSerializer(serializers.ModelSerializer):
+    product_count = serializers.SerializerMethodField()
     class Meta:
         model = Color
-        fields = "__all__"
+        fields = ('id', 'name','hex_code', 'product_count')
+        
+    def get_product_count(self, obj):
+        return obj.product_set.count()
+    
+class SizeSerializer(serializers.ModelSerializer):
+    product_count = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Size
+        fields = ('id', 'name','description', 'product_count')
+
+    def get_product_count(self, obj):
+        return obj.product_set.count()
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:

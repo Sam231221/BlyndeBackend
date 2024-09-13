@@ -3,9 +3,15 @@ from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.utils.html import mark_safe
 from django.db import models
-from datetime import timedelta
 
 
+
+class Size(models.Model):
+    name = models.CharField(max_length=50, null=True)
+    description = models.CharField(max_length=200, null=True)
+    def __str__(self):
+        return self.name
+    
 class Color(models.Model):
     name = models.CharField(max_length=50)
     hex_code = models.CharField(
@@ -25,7 +31,7 @@ class Category(models.Model):
 
     def __str__(self):
         if self.parent:
-            return f"{self.parent} - {self.name}"
+            return f"{self.name} -> {self.parent}"
         return str(self.name)
 
     def get_full_path(self):
@@ -34,7 +40,10 @@ class Category(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
+        if self.parent:
+            self.slug = slugify(str(self.name)+"-"+str(self.parent))
+        else:
+            self.slug = slugify(str(self.name))     
         super(Category, self).save(*args, **kwargs)
 
     class Meta:
@@ -61,6 +70,7 @@ class Product(models.Model):
     thumbnail = models.ImageField(null=True, blank=True, default="/placeholder.png")
     brand = models.CharField(max_length=200, null=True, blank=True)
     colors = models.ManyToManyField(Color)
+    size = models.ManyToManyField(Size)
     categories = models.ManyToManyField(Category, related_name="products")
     description = models.TextField(null=True, blank=True)
     rating = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)

@@ -8,6 +8,7 @@ urlpatterns = [
         views.DiscountOfferDeleteView.as_view(),
         name="delete_discount_offer",
     ),
+    path("sizes/", views.GetAllSizes.as_view(), name="sizes"),
     path("categories/", views.getCategories, name="categories"),
     path("colors/", views.getAllColors, name="colors"),
     path("", views.getProducts, name="products"),
@@ -20,6 +21,7 @@ urlpatterns = [
     path("upload/", views.uploadImage, name="image-upload"),
     path("<str:pk>/reviews/", views.createProductReview, name="create-review"),
     path("<str:pk>/", views.getProduct, name="product"),
+     path("<str:product_id>/related/", views.RelatedProductsAPIView.as_view(), name="related-products"),
     path("update/<str:pk>/", views.updateProduct, name="product-update"),
     path("delete/<str:pk>/", views.deleteProduct, name="product-delete"),
 ]
