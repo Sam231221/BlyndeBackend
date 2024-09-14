@@ -106,6 +106,7 @@ class ProductSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField(read_only=True)
     colors = ColorSerializer(many=True)
     categories = CategorySerializer(many=True)
+    size=SizeSerializer(many=True)
     image_albums = serializers.SerializerMethodField()
 
     class Meta:

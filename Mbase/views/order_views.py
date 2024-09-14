@@ -18,7 +18,7 @@ def addOrderItems(request):
     data = request.data
 
     orderItems = data['orderItems']
-
+    print("orderItems:",orderItems)
     if orderItems and len(orderItems) == 0:
         return Response({'detail': 'No Order Items'}, status=status.HTTP_400_BAD_REQUEST)
     else:
@@ -45,12 +45,14 @@ def addOrderItems(request):
 
         # (3) Create order items adn set order to orderItem relationship
         for i in orderItems:
-            product = Product.objects.get(_id=i['product'])
+            product = Product.objects.get(_id=i['productId'])
 
             item = OrderItem.objects.create(
                 product=product,
                 order=order,
                 name=product.name,
+                color=i["color"],
+                size=i["size"],
                 qty=int(i['quantity']),
                 price=i['price'],
                 thumbnail=product.thumbnail.url,
