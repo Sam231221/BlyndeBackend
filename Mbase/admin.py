@@ -23,7 +23,7 @@ class ImageAlbumAdmin(admin.TabularInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ["image", "name","price", "is_featured", "rating", "countInStock"]
+    list_display = ["image", "name","price", "badge","discount_percentage","is_featured", "rating", "countInStock"]
     list_editable = ["price"]
     inlines = [ImageAlbumAdmin]
     extra = 5

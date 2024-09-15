@@ -77,16 +77,21 @@ class Product(models.Model):
     numReviews = models.IntegerField(null=True, blank=True, default=0)
     # Price Things#
     price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    on_sale = models.BooleanField(default=False)
-    sale_price = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
+    sale_price = models.DecimalField(max_digits=10,editable=False, decimal_places=2, null=True, blank=True)
+    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)    
     countInStock = models.IntegerField(null=True, blank=True, default=0)
-
     createdAt = models.DateTimeField(auto_now_add=True)
     _id = models.AutoField(primary_key=True, editable=False)
     is_featured = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name="likes", default=None, blank=True)
+    badge = models.CharField(max_length=20, choices=[('Featured', 'Featured'), ('Top Rated', 'Top Rated'), ('Sale', 'Sale')], null=True, blank=True)
+
+    
+    def save(self, *args, **kwargs):
+        # Automatically calculate sale_price based on discount_percentage
+        if self.discount_percentage and not self.sale_price:
+            self.sale_price = self.price - (self.price * (self.discount_percentage / 100))
+        super().save(*args, **kwargs)
 
     def image(self):
         return mark_safe(
