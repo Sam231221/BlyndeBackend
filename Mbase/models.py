@@ -74,7 +74,7 @@ class Product(models.Model):
     categories = models.ManyToManyField(Category, related_name="products")
     description = models.TextField(null=True, blank=True)
     rating = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    numReviews = models.IntegerField(null=True, blank=True, default=0)
+    review_count = models.PositiveIntegerField(default=0,editable=False)    
     # Price Things#
     price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
     sale_price = models.DecimalField(max_digits=10,editable=False, decimal_places=2, null=True, blank=True)
@@ -85,8 +85,19 @@ class Product(models.Model):
     is_featured = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name="likes", default=None, blank=True)
     badge = models.CharField(max_length=20, choices=[('Featured', 'Featured'), ('Top Rated', 'Top Rated'), ('Sale', 'Sale')], null=True, blank=True)
-
     
+    def update_review_count(self):
+        self.review_count = self.reviews.count()
+        self.save()
+
+    def update_rating(self):
+            # Calculate the average rating from related reviews
+            reviews = self.reviews.all()
+            if reviews.exists():
+                self.rating = reviews.aggregate(models.Avg('rating'))['rating__avg']
+            else:
+                self.rating = None
+            self.save()    
     def save(self, *args, **kwargs):
         # Automatically calculate sale_price based on discount_percentage
         if self.discount_percentage and not self.sale_price:
@@ -105,6 +116,9 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class DiscountOffers(models.Model):
@@ -138,7 +152,7 @@ class ImageAlbum(models.Model):
 
 
 class Review(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
+    product = models.ForeignKey(Product,related_name="reviews", on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=200, null=True, blank=True)
     rating = models.IntegerField(null=True, blank=True, default=0)
@@ -147,9 +161,12 @@ class Review(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
 
     def __str__(self):
-        return str(self.rating)
+        return f"Comment on {self.product.name} by {self.name}."
 
-
+@receiver(post_save, sender=Review)
+def update_product_rating(sender, instance, **kwargs):
+    instance.product.update_review_count()
+    instance.product.update_rating()
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     paymentMethod = models.CharField(max_length=200, null=True, blank=True)

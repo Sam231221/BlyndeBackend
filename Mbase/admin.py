@@ -14,10 +14,16 @@ from .models import (
 )
 
 admin.site.register(
-    (Category, DiscountOffers,Size, Color, Genre, Order, OrderItem, Review, ShippingAddress)
+    (Category, DiscountOffers,Size, Color, Genre, Order, OrderItem, ShippingAddress)
 )
 
 
+class ReviewAdmin(admin.ModelAdmin):
+    list_display = ('product', 'user', 'rating',)
+    list_filter = ('rating', )
+    search_fields = ('product__name', 'user__username')
+
+admin.site.register(Review, ReviewAdmin)    
 class ImageAlbumAdmin(admin.TabularInline):
     model = ImageAlbum
 

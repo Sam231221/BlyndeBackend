@@ -114,7 +114,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_reviews(self, obj):
-        reviews = obj.review_set.all()
+        reviews = obj.reviews.all()
         serializer = ReviewSerializer(reviews, many=True)
         return serializer.data
 
