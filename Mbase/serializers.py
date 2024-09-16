@@ -53,11 +53,10 @@ class UserSerializerWithToken(UserSerializer):
         token = RefreshToken.for_user(obj)
         return str(token.access_token)
 
-
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = "__all__"
+        fields = ['product', 'user', 'name', 'createdAt','rating', 'comment']
 
 
 class CategorySerializer(serializers.ModelSerializer):

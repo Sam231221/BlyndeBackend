@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404
-from Mbase.models import Product,Size, Review, Color, Category, ImageAlbum, DiscountOffers
+from Mbase.models import Product,Size, User,Review, Color, Category, ImageAlbum, DiscountOffers
 from Mbase.serializers import ProductSerializer
 
 from rest_framework import status, viewsets, generics
@@ -16,6 +16,7 @@ from Mbase.serializers import (
     DiscountOffersSerializer,
     ImageAlbumSerializer,
     ColorSerializer,
+    ReviewSerializer
 )
 
 
@@ -207,6 +208,33 @@ def getProduct(request, pk):
     product = Product.objects.get(_id=pk)
     serializer = ProductSerializer(product, many=False)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def get_product_reviews(request, product_id):
+    reviews = Review.objects.filter(product___id=product_id)
+    serializer = ReviewSerializer(reviews, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def create_review(request):
+    data = request.data
+    try:
+        product = Product.objects.get(_id=data['productId'])
+    except Product.DoesNotExist:
+        return Response({"detail": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+    user_obj =User.objects.filter(first_name=data['user']).first()
+    # Create the review
+    review = Review.objects.create(
+        product=product,
+        user=user_obj,
+        name=data['user'], 
+        rating=data['rating'],
+        comment=data['comment']
+    )
+    
+    serializer = ReviewSerializer(review)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 
 @api_view(["POST"])
