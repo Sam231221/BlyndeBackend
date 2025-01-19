@@ -47,16 +47,27 @@ class UserSerializerWithToken(UserSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "_id", "username", "email", "name", "isAdmin", "token"]
+        fields = [
+            "id",
+            "_id",
+            "username",
+            "first_name",
+            "email",
+            "name",
+            "isAdmin",
+            "token",
+        ]
 
+    # generates token for the user
     def get_token(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token.access_token)
 
+
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['product', 'user', 'name', 'createdAt','rating', 'comment']
+        fields = ["product", "user", "name", "createdAt", "rating", "comment"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -67,27 +78,30 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class ColorSerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Color
-        fields = ('id', 'name','hex_code', 'product_count')
-        
+        fields = ("_id", "name", "hex_code", "product_count")
+
     def get_product_count(self, obj):
         return obj.product_set.count()
-    
+
+
 class SizeSerializer(serializers.ModelSerializer):
     product_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Size
-        fields = ('id', 'name','description', 'product_count')
+        fields = ("_id", "name", "description", "product_count")
 
     def get_product_count(self, obj):
         return obj.product_set.count()
 
+
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = "__al__"
+        fields = "__all__"
 
 
 class DiscountOffersSerializer(serializers.ModelSerializer):
@@ -105,7 +119,7 @@ class ProductSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField(read_only=True)
     colors = ColorSerializer(many=True)
     categories = CategorySerializer(many=True)
-    size=SizeSerializer(many=True)
+    size = SizeSerializer(many=True)
     image_albums = serializers.SerializerMethodField()
 
     class Meta:

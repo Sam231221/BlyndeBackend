@@ -5,14 +5,17 @@ from django.utils.html import mark_safe
 from django.db import models
 
 
-
 class Size(models.Model):
+    _id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=50, null=True)
     description = models.CharField(max_length=200, null=True)
+
     def __str__(self):
         return self.name
-    
+
+
 class Color(models.Model):
+    _id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=50)
     hex_code = models.CharField(
         max_length=7, help_text="Hex color code, e.g., #FFFFFF for white"
@@ -23,6 +26,7 @@ class Color(models.Model):
 
 
 class Category(models.Model):
+    _id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=50, null=True)
     parent = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
@@ -41,9 +45,9 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if self.parent:
-            self.slug = slugify(str(self.name)+"-"+str(self.parent))
+            self.slug = slugify(str(self.name) + "-" + str(self.parent))
         else:
-            self.slug = slugify(str(self.name))     
+            self.slug = slugify(str(self.name))
         super(Category, self).save(*args, **kwargs)
 
     class Meta:
@@ -52,6 +56,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    _id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=50, null=True)
     slug = models.SlugField(null=True, editable=False)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
@@ -74,34 +79,50 @@ class Product(models.Model):
     categories = models.ManyToManyField(Category, related_name="products")
     description = models.TextField(null=True, blank=True)
     rating = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    review_count = models.PositiveIntegerField(default=0,editable=False)    
+    review_count = models.PositiveIntegerField(default=0, editable=False)
     # Price Things#
     price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    sale_price = models.DecimalField(max_digits=10,editable=False, decimal_places=2, null=True, blank=True)
-    discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)    
+    sale_price = models.DecimalField(
+        max_digits=10, editable=False, decimal_places=2, null=True, blank=True
+    )
+    discount_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True
+    )
     countInStock = models.IntegerField(null=True, blank=True, default=0)
     createdAt = models.DateTimeField(auto_now_add=True)
     _id = models.AutoField(primary_key=True, editable=False)
     is_featured = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name="likes", default=None, blank=True)
-    badge = models.CharField(max_length=20, choices=[('Featured', 'Featured'), ('Top Rated', 'Top Rated'), ('Sale', 'Sale')], null=True, blank=True)
-    
+    badge = models.CharField(
+        max_length=20,
+        choices=[
+            ("Featured", "Featured"),
+            ("Top Rated", "Top Rated"),
+            ("Sale", "Sale"),
+        ],
+        null=True,
+        blank=True,
+    )
+
     def update_review_count(self):
         self.review_count = self.reviews.count()
         self.save()
 
     def update_rating(self):
-            # Calculate the average rating from related reviews
-            reviews = self.reviews.all()
-            if reviews.exists():
-                self.rating = reviews.aggregate(models.Avg('rating'))['rating__avg']
-            else:
-                self.rating = None
-            self.save()    
+        # Calculate the average rating from related reviews
+        reviews = self.reviews.all()
+        if reviews.exists():
+            self.rating = reviews.aggregate(models.Avg("rating"))["rating__avg"]
+        else:
+            self.rating = None
+        self.save()
+
     def save(self, *args, **kwargs):
         # Automatically calculate sale_price based on discount_percentage
         if self.discount_percentage and not self.sale_price:
-            self.sale_price = self.price - (self.price * (self.discount_percentage / 100))
+            self.sale_price = self.price - (
+                self.price * (self.discount_percentage / 100)
+            )
         super().save(*args, **kwargs)
 
     def image(self):
@@ -117,11 +138,13 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
 class DiscountOffers(models.Model):
+    _id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=200, null=True, blank=True)
     thumbnail = models.ImageField(null=True)
     price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
@@ -152,7 +175,9 @@ class ImageAlbum(models.Model):
 
 
 class Review(models.Model):
-    product = models.ForeignKey(Product,related_name="reviews", on_delete=models.SET_NULL, null=True)
+    product = models.ForeignKey(
+        Product, related_name="reviews", on_delete=models.SET_NULL, null=True
+    )
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=200, null=True, blank=True)
     rating = models.DecimalField(max_digits=7, decimal_places=2, null=True)
@@ -163,10 +188,13 @@ class Review(models.Model):
     def __str__(self):
         return f"Comment on {self.product.name} by {self.name}."
 
+
 @receiver(post_save, sender=Review)
 def update_product_rating(sender, instance, **kwargs):
     instance.product.update_review_count()
     instance.product.update_rating()
+
+
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     paymentMethod = models.CharField(max_length=200, null=True, blank=True)
@@ -208,7 +236,7 @@ class OrderItem(models.Model):
 class ShippingAddress(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, null=True, blank=True)
     address = models.CharField(max_length=200, null=True, blank=True)
-    city = models.CharField(max_length=200, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
     postalCode = models.CharField(max_length=200, null=True, blank=True)
     country = models.CharField(max_length=200, null=True, blank=True)
     shippingPrice = models.DecimalField(

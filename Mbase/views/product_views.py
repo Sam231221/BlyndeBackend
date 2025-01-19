@@ -1,154 +1,38 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.views import APIView
 from django.db.models import Q
 from django.http import JsonResponse
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.response import Response
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404
-from Mbase.models import Product,Size, User,Review, Color, Category, ImageAlbum, DiscountOffers
-from Mbase.serializers import ProductSerializer
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
-from rest_framework import status, viewsets, generics
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status, generics
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from Mbase.models import (
+    Product,
+    Size,
+    User,
+    Review,
+    Color,
+    Category,
+    ImageAlbum,
+    DiscountOffers,
+)
+from Mbase.serializers import ProductSerializer
 from Mbase.serializers import (
     CategorySerializer,
     SizeSerializer,
     DiscountOffersSerializer,
     ImageAlbumSerializer,
     ColorSerializer,
-    ReviewSerializer
+    ReviewSerializer,
 )
+from Mbase.filters import ProductFilter
+from Mbase.pagination import ProductPagination
 
-
-"""
-Generating API from python file.
-------------------------------------------------------------
-#With Response() method of DRF. You'll get Nice view
-from django.http import JsonResponse
-
-from .products import products
-@api_view(['GET'])
-def getRoutes(request):
-    routes=['example.com', 'example.com/4',]
-    return Response(routes)
-
-@api_view(['GET'])
-def getProducts(request):
-    print(products)
-    return Response(products)
-
-@api_view(['GET'])
-def getProduct(request, pk):
-    product=None
-    for i in products:
-        if i['_id'] == pk:
-            product = i
-            break
-    return Response(product)    
-"""
-
-
-@api_view(["GET"])
-def getCategories(request):
-    categories_obj = Category.objects.all().exclude(name__icontains="deals")
-    categories = CategorySerializer(categories_obj, many=True).data
-
-    for category in categories:
-        category_obj = Category.objects.filter(id=category["id"]).first()
-        category["genres"] = list(category_obj.genre_set.values())
-
-    return Response(categories)
-
-
-@api_view(["GET"])
-def getAllProducts(request):
-    products = Product.objects.all()
-    serialized_data = ProductSerializer(products, many=True).data
-    return Response(serialized_data)
-
-class GetAllSizes(APIView):
- def get(self, request):
-        sizes = Size.objects.all()
-        serializer = SizeSerializer(sizes, many=True)
-        return Response(serializer.data)
-
-@api_view(["GET"])
-def getAllColors(request):
-    colors = Color.objects.all()
-    serialized_data = ColorSerializer(colors, many=True).data
-    return Response(serialized_data)
-
-
-@api_view(["GET"])
-def getProducts(request):
-    query = request.query_params.get("keyword")
-    if query == None:
-        query = ""
-
-    products = Product.objects.filter(name__icontains=query).order_by("-createdAt")
-    page = request.query_params.get("page")
-    paginator = Paginator(products, 4)
-
-    try:
-        products = paginator.page(page)
-    except PageNotAnInteger:
-        products = paginator.page(1)
-    except EmptyPage:
-        products = paginator.page(paginator.num_pages)
-
-    if page == None:
-        page = 1
-
-    page = int(page)
-
-    serialized_products = ProductSerializer(products, many=True).data
-    for product in serialized_products:
-        product_obj = Product.objects.filter(_id=product["_id"]).first()
-        product["images"] = list(product_obj.imagealbum_set.values())
-
-    return Response(
-        {"products": serialized_products, "page": page, "pages": paginator.num_pages}
-    )
-
-
-@api_view(["GET"])
-def getTopProducts(request):
-    products = Product.objects.filter(rating__gte=5).order_by("-rating")[0:5]
-    serialized_products = ProductSerializer(products, many=True).data
-    for product in serialized_products:
-        product_obj = Product.objects.filter(_id=product["_id"]).first()
-        product["images"] = list(product_obj.imagealbum_set.values())
-    return Response(serialized_products)
-
-
-@api_view(["GET"])
-def getDealProducts(request):
-    category_obj = Category.objects.filter(name__icontains="deals").first()
-    products = Product.objects.filter(categories=category_obj)[0:6]
-    serialized_products = ProductSerializer(products, many=True).data
-    for product in serialized_products:
-        product_obj = Product.objects.filter(_id=product["_id"]).first()
-        imagealbum_objs = ImageAlbum.objects.filter(product=product_obj)
-        product["images"] = ImageAlbumSerializer(imagealbum_objs, many=True).data
-
-    return Response(serialized_products)
-
-class RelatedProductsAPIView(generics.ListAPIView):
-    serializer_class = ProductSerializer
-
-    def get_queryset(self):
-        product_id = self.kwargs['product_id']
-        product = Product.objects.get(_id=product_id)
-
-        # Logic to determine related products (customize based on your needs)
-        related_products = Product.objects.filter(
-            # Consider these factors (modify based on your priorities):
-            Q(categories__in=product.categories.all()) |  
-            Q(colors__in=product.colors.all()),        
-            Q(brand=product.brand)                     
-        ).exclude(_id=product_id) 
-
-        return related_products.distinct() 
 
 class DiscountOffersView(APIView):
     def get(self, request, format=None):
@@ -177,158 +61,213 @@ class DiscountOfferDeleteView(APIView):
             )
 
 
-@api_view(["GET"])
-def getRecentProducts(request):
-    category_obj = Category.objects.filter(name__icontains="deals").first()
-    products = Product.objects.exclude(categories=category_obj).order_by("-createdAt")[
-        :8
-    ]
-    serialized_products = ProductSerializer(products, many=True).data
-    for product in serialized_products:
-        product_obj = Product.objects.filter(_id=product["_id"]).first()
-        imagealbum_objs = ImageAlbum.objects.filter(product=product_obj)
-        product["images"] = ImageAlbumSerializer(imagealbum_objs, many=True).data
+class CategoryListView(generics.ListAPIView):
+    serializer_class = CategorySerializer
 
-    return Response(serialized_products)
+    def get_queryset(self):
+        return Category.objects.all().exclude(name__icontains="deals")
 
-
-@api_view(["GET"])
-def getFeaturedProducts(request):
-    products = Product.objects.filter(is_featured=True)[0:8]
-    serialized_products = ProductSerializer(products, many=True).data
-    for product in serialized_products:
-        product_obj = Product.objects.filter(_id=product["_id"]).first()
-        product["images"] = list(product_obj.imagealbum_set.values())
-
-    return Response(serialized_products)
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        for category in response.data:
+            category_obj = Category.objects.filter(id=category["id"]).first()
+            category["genres"] = list(category_obj.genre_set.values())
+        return Response(response.data)
 
 
-@api_view(["GET"])
-def getProduct(request, pk):
-    product = Product.objects.get(_id=pk)
-    serializer = ProductSerializer(product, many=False)
-    return Response(serializer.data)
-
-@api_view(['GET'])
-def get_product_reviews(request, product_id):
-    reviews = Review.objects.filter(product___id=product_id)
-    serializer = ReviewSerializer(reviews, many=True)
-    return Response(serializer.data)
-
-@api_view(['POST'])
-def create_review(request):
-    data = request.data
-    try:
-        product = Product.objects.get(_id=data['productId'])
-    except Product.DoesNotExist:
-        return Response({"detail": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
-    user_obj =User.objects.filter(first_name=data['user']).first()
-    # Create the review
-    review = Review.objects.create(
-        product=product,
-        user=user_obj,
-        name=data['user'], 
-        rating=data['rating'],
-        comment=data['comment']
-    )
-    
-    serializer = ReviewSerializer(review)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+class ProductListView(generics.ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = ProductFilter
+    pagination_class = ProductPagination
+    search_fields = ["name", "description"]
 
 
-
-@api_view(["POST"])
-@permission_classes([IsAdminUser])
-def createProduct(request):
-    user = request.user
-    product = Product.objects.create(
-        user=user,
-        name="Sample Name",
-        price=0,
-        brand="Sample Brand",
-        countInStock=0,
-        description="",
-    )
-
-    serializer = ProductSerializer(product, many=False)
-    return Response(serializer.data)
+class SizeListView(APIView):
+    def get(self, request):
+        sizes = Size.objects.all()
+        serializer = SizeSerializer(sizes, many=True)
+        return Response(serializer.data)
 
 
-@api_view(["PUT"])
-@permission_classes([IsAdminUser])
-def updateProduct(request, pk):
-    data = request.data
-    product = Product.objects.get(_id=pk)
-    product.name = data["name"]
-    product.price = data["price"]
-    product.brand = data["brand"]
-    product.countInStock = data["countInStock"]
-    product.category = Category.objects.filter(name=data["category"]).first()
-    product.description = data["description"]
-
-    product.save()
-
-    serializer = ProductSerializer(product, many=False)
-    return Response(serializer.data)
+class ColorListView(generics.ListAPIView):
+    serializer_class = ColorSerializer
+    queryset = Color.objects.all()
 
 
-@api_view(["DELETE"])
-@permission_classes([IsAdminUser])
-def deleteProduct(request, pk):
-    product = Product.objects.get(_id=pk)
-    product.delete()
-    return Response("Producted Deleted")
+class ProductsView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+    pagination_class = ProductPagination
+
+    def get_queryset(self):
+        query = self.request.query_params.get("keyword", "")
+        return (
+            Product.objects.filter(name__icontains=query)
+            .order_by("-createdAt")
+            .prefetch_related(
+                "reviews", "colors", "categories", "size", "imagealbum_set"
+            )
+        )
 
 
-@api_view(["POST"])
-def uploadImage(request):
-    data = request.data
+class TopProductsView(generics.ListAPIView):
+    serializer_class = ProductSerializer
 
-    product_id = data["product_id"]
-    product = Product.objects.get(_id=product_id)
+    def get_queryset(self):
+        return (
+            Product.objects.filter(rating__gte=5)
+            .order_by("-rating")[:5]
+            .prefetch_related(
+                "reviews", "colors", "categories", "size", "imagealbum_set"
+            )
+        )
 
-    product.image = request.FILES.get("image")
-    product.save()
 
-    return Response("Image was uploaded")
+class DealProductsView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        category_obj = Category.objects.filter(name__icontains="deals").first()
+        return Product.objects.filter(categories=category_obj)[:6].prefetch_related(
+            "reviews", "colors", "categories", "size", "imagealbum_set"
+        )
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def createProductReview(request, pk):
-    user = request.user
-    product = Product.objects.get(_id=pk)
-    data = request.data
+class RelatedProductsAPIView(generics.ListAPIView):
+    serializer_class = ProductSerializer
 
-    # 1 - Review already exists
-    alreadyExists = product.review_set.filter(user=user).exists()
-    if alreadyExists:
-        content = {"detail": "Product already reviewed"}
-        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        product_id = self.kwargs["product_id"]
+        product = Product.objects.get(_id=product_id)
 
-    # 2 - No Rating or 0
-    elif data["rating"] == 0:
-        content = {"detail": "Please select a rating"}
-        return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        # Logic to determine related products (customize based on your needs)
+        related_products = Product.objects.filter(
+            # Consider these factors (modify based on your priorities):
+            Q(categories__in=product.categories.all())
+            | Q(colors__in=product.colors.all()),
+            Q(brand=product.brand),
+        ).exclude(_id=product_id)
 
-    # 3 - Create review
-    else:
-        Review.objects.create(
-            user=user,
+        return related_products.distinct()
+
+
+class RecentProductsView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        category_obj = Category.objects.filter(name__icontains="deals").first()
+        return Product.objects.exclude(categories=category_obj).order_by("-createdAt")[
+            :8
+        ]
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        for product in response.data:
+            product_obj = Product.objects.filter(_id=product["_id"]).first()
+            imagealbum_objs = ImageAlbum.objects.filter(product=product_obj)
+            product["images"] = ImageAlbumSerializer(imagealbum_objs, many=True).data
+        return Response(response.data)
+
+
+class FeaturedProductsView(generics.ListAPIView):
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        return Product.objects.filter(is_featured=True)[:8]
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        for product in response.data:
+            product_obj = Product.objects.filter(_id=product["_id"]).first()
+            product["images"] = list(product_obj.imagealbum_set.values())
+        return Response(response.data)
+
+
+class ProductDetailView(generics.RetrieveAPIView):
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all()
+    lookup_field = "pk"
+
+
+class ProductReviewListView(generics.ListAPIView):
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        product_id = self.kwargs.get("product_id")
+        return Review.objects.filter(product___id=product_id)
+
+
+class CreateReviewView(generics.CreateAPIView):
+    serializer_class = ReviewSerializer
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        product = get_object_or_404(Product, _id=data["productId"])
+        user_obj = User.objects.filter(first_name=data["user"]).first()
+
+        review = Review.objects.create(
             product=product,
-            name=user.first_name,
+            user=user_obj,
+            name=data["user"],
             rating=data["rating"],
             comment=data["comment"],
         )
+        serializer = self.get_serializer(review)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        reviews = product.review_set.all()
-        product.numReviews = len(reviews)
 
-        total = 0
-        for i in reviews:
-            total += i.rating
+# POST: Create Product (Admin Only)
+class CreateProductView(generics.CreateAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
 
-        product.rating = total / len(reviews)
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(
+            user=user,
+            name="Sample Name",
+            price=0,
+            brand="Sample Brand",
+            countInStock=0,
+            description="",
+        )
+
+
+# PUT: Update Product (Admin Only)
+class UpdateProductView(generics.UpdateAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [IsAdminUser]
+    queryset = Product.objects.all()
+    lookup_field = "_id"
+
+    def perform_update(self, serializer):
+        data = self.request.data
+        category = Category.objects.filter(name=data["category"]).first()
+        serializer.save(
+            name=data["name"],
+            price=data["price"],
+            brand=data["brand"],
+            countInStock=data["countInStock"],
+            category=category,
+            description=data["description"],
+        )
+
+
+# DELETE: Delete Product (Admin Only)
+class DeleteProductView(generics.DestroyAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = Product.objects.all()
+    lookup_field = "_id"
+
+
+# POST: Upload Image
+class UploadImageView(generics.GenericAPIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        product_id = data.get("product_id")
+        product = get_object_or_404(Product, _id=product_id)
+
+        product.image = request.FILES.get("image")
         product.save()
-
-        return Response("Review Added")
+        return Response("Image was uploaded")

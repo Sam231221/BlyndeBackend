@@ -12,24 +12,25 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from datetime import timedelta
 from pathlib import Path
-from dotenv import load_dotenv
+
 import dj_database_url
-import os
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(os.path.join(BASE_DIR, '.env'))
-# SECRET_KEY = "django-insecure-k=ugavelz2u10o9m=yxah#lpz6758^mmw5n%q$xupb#7fo&xtk"
-
+# load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 
 # ALLOWED_HOSTS = ["127.0.0.1", "localhost", "*"]
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = config("SECRET_KEY")
+DEBUG = config("DEBUG", default=True, cast=bool)
+# SECRET_KEY = config("SECRET_KEY")
 
-DEBUG = True
+# DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "Mbase.apps.MbaseConfig",
     "rest_framework",
+    "django_filters",
     "corsheaders",
     "whitenoise",
 ]
@@ -114,25 +116,21 @@ WSGI_APPLICATION = "djangoproj.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DATABASE_NAME"),
-        "USER": os.getenv("DATABASE_USER"),
-        "PASSWORD": os.getenv("DATABASE_PASSWORD"),
-        "HOST": os.getenv("DATABASE_HOST"),
-        "PORT": os.getenv("DATABASE_PORT"),
+        "NAME": config("DATABASE_NAME"),
+        "USER": config("DATABASE_USER"),
+        "PASSWORD": config("DATABASE_PASSWORD"),
+        "HOST": config("DATABASE_HOST"),
+        "PORT": config("DATABASE_PORT"),
     }
 }
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
 
-db_from_env = dj_database_url.config(conn_max_age=600)
+# Update database configuration with DATABASE_URL, if available
+DATABASE_URL = config("DATABASE_URL", default=None)
+
+db_from_env = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
 DATABASES["default"].update(db_from_env)
+
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
