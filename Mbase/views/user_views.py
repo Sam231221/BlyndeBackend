@@ -39,24 +39,48 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 @api_view(["POST"])
 def registerUser(request):
-    # data is generally dictionary.
     data = request.data
 
+    # Validate Emtyness
+    required_fields = ["name", "email", "password"]
+    for field in required_fields:
+        if field not in data or not data[field]:
+            return Response(
+                {"detail": f"{field} is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    # Validate Password Length
+    if len(data["password"]) < 8:
+        return Response(
+            {"detail": "Password must be at least 8 characters long"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     try:
+        # Check if email already exists
+        if User.objects.filter(email=data["email"]).exists():
+            return Response(
+                {"detail": "User with this email already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create user
         user = User.objects.create(
             first_name=data["name"],
-            username=data["email"],
+            username=data["email"],  # Username is set to email for simplicity
             email=data["email"],
-            # make_password() is a function that hashes password.
-            password=make_password(data["password"]),
+            password=make_password(data["password"]),  # Hash the password
         )
-        serializer = UserSerializerWithToken(user, many=False)
 
-        # serializer.data is  a json
-        return Response(serializer.data)
-    except:
-        message = {"detail": "User with this email already exists"}
-        return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        # Serialize user data with token
+        serializer = UserSerializerWithToken(user, many=False)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response(
+            {"detail": "An error occurred while creating the user", "error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @api_view(["GET", "PUT"])
