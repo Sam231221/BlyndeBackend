@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django_filters",
     "corsheaders",
     "whitenoise",
+    "django_rest_passwordreset",
 ]
 
 
@@ -98,7 +99,10 @@ ROOT_URLCONF = "djangoproj.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            BASE_DIR,
+            "templates/",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -182,3 +186,14 @@ CSRF_TRUSTED_ORIGINS = [
     "https://relshop.up.railway.app",
     "http://localhost:5173/",
 ]
+
+
+# SMTP CONFIGURATION
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+
+EMAIL_HOST_USER = "dimensionalassistanceteam37@gmail.com"
+EMAIL_HOST_PASSWORD = "123@gmailcom"
+GOOGLE_RECAPTCHA_SECRET_KEY = "6LdaeUAfAAAAAM9bU8TxfRTky-ok_qnhsF6gq-za"

@@ -16,6 +16,11 @@ from .models import (
 )
 
 
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+
 class UserSerializer(serializers.ModelSerializer):
     # custom fields to be serialized.
     name = serializers.SerializerMethodField(read_only=True)
@@ -109,11 +114,6 @@ class DiscountOffersSerializer(serializers.ModelSerializer):
         model = DiscountOffers
         fields = "__all__"  # Include all fields
 
-    # def to_representation(self, instance):
-    #     response = super().to_representation(instance)
-    #     response["is_active"] = instance.is_active()  # Add a field for active status
-    #     return response
-
 
 class ProductSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField(read_only=True)
@@ -138,6 +138,24 @@ class ProductSerializer(serializers.ModelSerializer):
     # def get_colors(self, obj):
     #     colors = obj.color_set.all()
     #     return ColorSerializer(colors, many=True).data
+
+
+class ProductCreateUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Product
+        fields = [
+            "name",
+            "thumbnail",
+            "brand",
+            "size",
+            "colors",
+            "categories",
+            "description",
+            "price",
+            "countInStock",
+            "badge",
+        ]
 
 
 class ImageAlbumSerializer(serializers.ModelSerializer):

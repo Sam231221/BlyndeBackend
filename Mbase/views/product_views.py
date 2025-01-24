@@ -1,11 +1,7 @@
 from django.db.models import Q
 from django.http import JsonResponse
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination
-
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, generics
@@ -21,7 +17,6 @@ from Mbase.models import (
     ImageAlbum,
     DiscountOffers,
 )
-from Mbase.serializers import ProductSerializer
 from Mbase.serializers import (
     CategorySerializer,
     SizeSerializer,
@@ -29,6 +24,8 @@ from Mbase.serializers import (
     ImageAlbumSerializer,
     ColorSerializer,
     ReviewSerializer,
+    ProductSerializer,
+    ProductCreateUpdateSerializer,
 )
 from Mbase.filters import ProductFilter
 from Mbase.pagination import ProductPagination
@@ -50,7 +47,10 @@ class DiscountOfferDeleteView(APIView):
         try:
             offer = get_object_or_404(DiscountOffers, pk=pk)
             offer.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {"detail": "Discount offer deleted Successfully!."},
+                status=status.HTTP_200_OK,
+            )
         except DiscountOffers.DoesNotExist:
             return JsonResponse(
                 {"error": "Discount offer not found"}, status=status.HTTP_404_NOT_FOUND
@@ -190,6 +190,37 @@ class ProductDetailView(generics.RetrieveAPIView):
     lookup_field = "pk"
 
 
+# # Accepts POST method
+class CreateProductView(generics.CreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductCreateUpdateSerializer
+
+
+# Accepts PUT, PATCH method
+class UpdateProductView(generics.UpdateAPIView):
+    serializer_class = ProductCreateUpdateSerializer
+    permission_classes = [IsAdminUser]
+    queryset = Product.objects.all()
+    lookup_field = "pk"
+
+
+# Accepts DELETE method
+class DeleteProductView(generics.DestroyAPIView):
+    permission_classes = [IsAdminUser]
+    queryset = Product.objects.all()
+    lookup_field = "pk"
+
+    # default response is 204 content
+    # so overriding delete() to show custom response
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {"detail": f"Product has been deleted successfully!."},
+            status=status.HTTP_200_OK,
+        )
+
+
 class ProductReviewListView(generics.ListAPIView):
     serializer_class = ReviewSerializer
 
@@ -198,76 +229,19 @@ class ProductReviewListView(generics.ListAPIView):
         return Review.objects.filter(product___id=product_id)
 
 
-class CreateReviewView(generics.CreateAPIView):
+class ReviewListCreateView(generics.ListCreateAPIView):
+    queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
-    def create(self, request, *args, **kwargs):
-        data = request.data
-        product = get_object_or_404(Product, _id=data["productId"])
-        user_obj = User.objects.filter(first_name=data["user"]).first()
 
-        review = Review.objects.create(
-            product=product,
-            user=user_obj,
-            name=data["user"],
-            rating=data["rating"],
-            comment=data["comment"],
-        )
-        serializer = self.get_serializer(review)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated]
 
-
-# POST: Create Product (Admin Only)
-class CreateProductView(generics.CreateAPIView):
-    serializer_class = ProductSerializer
-    permission_classes = [IsAdminUser]
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        serializer.save(
-            user=user,
-            name="Sample Name",
-            price=0,
-            brand="Sample Brand",
-            countInStock=0,
-            description="",
-        )
-
-
-# PUT: Update Product (Admin Only)
-class UpdateProductView(generics.UpdateAPIView):
-    serializer_class = ProductSerializer
-    permission_classes = [IsAdminUser]
-    queryset = Product.objects.all()
-    lookup_field = "_id"
-
-    def perform_update(self, serializer):
-        data = self.request.data
-        category = Category.objects.filter(name=data["category"]).first()
-        serializer.save(
-            name=data["name"],
-            price=data["price"],
-            brand=data["brand"],
-            countInStock=data["countInStock"],
-            category=category,
-            description=data["description"],
-        )
-
-
-# DELETE: Delete Product (Admin Only)
-class DeleteProductView(generics.DestroyAPIView):
-    permission_classes = [IsAdminUser]
-    queryset = Product.objects.all()
-    lookup_field = "_id"
-
-
-# POST: Upload Image
-class UploadImageView(generics.GenericAPIView):
-    def post(self, request, *args, **kwargs):
-        data = request.data
-        product_id = data.get("product_id")
-        product = get_object_or_404(Product, _id=product_id)
-
-        product.image = request.FILES.get("image")
-        product.save()
-        return Response("Image was uploaded")
+    def get_object(self):
+        """
+        Optionally, you can modify this method to customize how the review is fetched (e.g., using the review ID).
+        """
+        review = get_object_or_404(Review, pk=self.kwargs["pk"])
+        return review

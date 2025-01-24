@@ -23,18 +23,21 @@ urlpatterns = [
         views.RelatedProductsAPIView.as_view(),
         name="related-products",
     ),
-    # CRUD
-    path("<str:pk>/", views.ProductDetailView.as_view(), name="product"),
-    path("create/", views.CreateProductView.as_view(), name="product-create"),
-    path("update/<str:pk>/", views.UpdateProductView.as_view(), name="product-update"),
-    path("delete/<str:pk>/", views.DeleteProductView.as_view(), name="product-delete"),
-    # Images
-    path("upload/", views.UploadImageView.as_view(), name="image-upload"),
     # Reviewes
+    path("reviews/", views.ReviewListCreateView.as_view(), name="review-list-create"),
     path(
         "<int:product_id>/reviews/",
         views.ProductReviewListView.as_view(),
         name="get_product_reviews",
     ),
-    path("reviews/create/", views.CreateReviewView.as_view(), name="create-review"),
+    path(
+        "reviews/<int:pk>/",
+        views.ReviewDetailView.as_view(),
+        name="review-detail",
+    ),
+    # CRUD
+    path("create/", views.CreateProductView.as_view(), name="product-create"),
+    path("<str:pk>/", views.ProductDetailView.as_view(), name="product-detail"),
+    path("update/<str:pk>/", views.UpdateProductView.as_view(), name="product-update"),
+    path("delete/<str:pk>/", views.DeleteProductView.as_view(), name="product-delete"),
 ]
