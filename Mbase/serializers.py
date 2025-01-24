@@ -69,12 +69,6 @@ class UserSerializerWithToken(UserSerializer):
         return str(token.access_token)
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Review
-        fields = ["product", "user", "name", "createdAt", "rating", "comment"]
-
-
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -162,6 +156,12 @@ class ImageAlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageAlbum
         fields = "__all__"
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ["product", "user", "name", "createdAt", "rating", "comment"]
 
 
 class ShippingAddressSerializer(serializers.ModelSerializer):

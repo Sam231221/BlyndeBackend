@@ -27,3 +27,16 @@ For adding order items
 "country": "USA"
 }
 }
+
+# For Product image urls
+
+from django.db import models
+from django.core.validators import URLValidator
+
+class MyModel(models.Model):
+my_url = models.URLField(
+validators=[URLValidator(schemes=['http', 'https'])],
+max_length=200,
+blank=True,
+null=True,
+)
