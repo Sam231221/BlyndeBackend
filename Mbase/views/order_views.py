@@ -95,7 +95,9 @@ class GetMyOrdersView(APIView):
 
     def get(self, request):
         user = request.user
+        print("sd:", user)
         orders = user.order_set.order_by("-_id")
+        print(orders)
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
 
