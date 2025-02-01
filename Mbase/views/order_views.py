@@ -132,7 +132,11 @@ class UpdateOrderToDeliveredView(APIView):
             order.deliveredAt = datetime.now()
             order.save()
             return Response(
-                {"detail": "Order was delivered"}, status=status.HTTP_200_OK
+                {
+                    "detail": "Order was delivered",
+                    "data": OrderSerializer(order, many=False).data,
+                },
+                status=status.HTTP_200_OK,
             )
         except Order.DoesNotExist:
             return Response(

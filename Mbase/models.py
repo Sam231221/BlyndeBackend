@@ -254,4 +254,4 @@ class ShippingAddress(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
 
     def __str__(self):
-        return str(self.address)
+        return f"{self.address}, {self.city}, {self.country} for order {self.order._id} by {self.order.user.username}"
