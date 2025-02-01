@@ -1,14 +1,23 @@
 from django.db.models.signals import pre_save, post_save
-from django.contrib.auth.models import User
+
 
 from django.core.mail import EmailMultiAlternatives
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 
 from django.urls import reverse
+
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
+
 from django_rest_passwordreset.signals import reset_password_token_created
 from django.conf import settings
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 @receiver(reset_password_token_created)
@@ -62,11 +71,16 @@ def password_reset_token_created(
 @receiver(post_save, sender=User)
 def send_email_verification(sender, instance, created, **kwargs):
     if created and not instance.email_verified:
-        verification_link = f"http://127.0.0.1:8000:8000/verify_email/{instance.pk}/"
+        uidb64 = urlsafe_base64_encode(force_bytes(instance.pk))
+        token = default_token_generator.make_token(instance)
+        verification_link = (
+            f"http://127.0.0.1:8000/api/users/verify-email/{uidb64}/{token}/"
+        )
         subject = "Email Verification for Your Account"
         message = f"Please click the link below to verify your email address:\n\n{verification_link}"
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [instance.email]
+        print("Verification Link:", verification_link)
         send_mail(subject, message, from_email, recipient_list)
 
 

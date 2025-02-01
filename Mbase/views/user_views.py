@@ -1,5 +1,7 @@
-from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.conf import settings
 from Mbase.serializers import (
     PasswordChangeSerializer,
     UserSerializer,
@@ -15,6 +17,18 @@ from rest_framework import status
 from django.contrib.auth import update_session_auth_hash
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+# from django.contrib.auth.tokens import default_token_generator
+# from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+
+
+# def generate_email_verification_token(user):
+#     uid = urlsafe_base64_encode(str(user.pk).encode())
+#     token = default_token_generator.make_token(user)
+#     return uid, token
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -90,6 +104,48 @@ def registerUser(request):
         )
 
 
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+
+
+User = get_user_model()
+
+
+@api_view(["GET"])
+def verify_email(request, uidb64, token):
+    try:
+        # Decode the user ID
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+
+        # Verify the token
+        if default_token_generator.check_token(user, token):
+            if user.email_verified:
+                return Response(
+                    {"message": "Email already verified."},
+                    status=status.HTTP_200_OK,
+                )
+
+            user.email_verified = True
+            user.save()
+
+            return Response(
+                {"message": "Email verified successfully!"},
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"error": "Invalid or expired token."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+        return Response(
+            {"error": "Invalid verification link."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
 # Change Password
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -162,15 +218,6 @@ class ValidateOTP(APIView):
             return Response(
                 {"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST
             )
-
-
-# verification view
-def verify_email(request, pk):
-    user = User.objects.get(pk=pk)
-    if not user.email_verified:
-        user.email_verified = True
-        user.save()
-    return redirect("http://localhost:8000/")  # Replace with your desired redirect URL
 
 
 @api_view(["GET", "PUT"])

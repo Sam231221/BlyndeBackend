@@ -7,10 +7,13 @@ from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 from Mbase.models import (
     Product,
     Size,
-    User,
     Review,
     Color,
     Category,
@@ -70,7 +73,7 @@ class CategoryListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         for category in response.data:
-            category_obj = Category.objects.filter(id=category["id"]).first()
+            category_obj = Category.objects.filter(_id=category["_id"]).first()
             category["genres"] = list(category_obj.genre_set.values())
         return Response(response.data)
 

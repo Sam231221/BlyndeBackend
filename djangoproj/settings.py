@@ -179,7 +179,7 @@ MEDIA_ROOT = BASE_DIR / "static/images"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 CORS_ALLOW_ALL_ORIGINS = True
-
+AUTH_USER_MODEL = "Mbase.User"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_TRUSTED_ORIGINS = [
@@ -195,5 +195,5 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 
 EMAIL_HOST_USER = "dimensionalassistanceteam37@gmail.com"
-EMAIL_HOST_PASSWORD = "123@gmailcom"
+EMAIL_HOST_PASSWORD = "cpmh dutp nobr eliu"
 GOOGLE_RECAPTCHA_SECRET_KEY = "6LdaeUAfAAAAAM9bU8TxfRTky-ok_qnhsF6gq-za"

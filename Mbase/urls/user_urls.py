@@ -13,4 +13,9 @@ urlpatterns = [
     path("update/<str:pk>/", views.updateUser, name="user-update"),
     path("delete/<str:pk>/", views.deleteUser, name="user-delete"),
     path("change_password/", views.change_password, name="change_password"),
+    path(
+        "verify-email/<uidb64>/<token>/",
+        views.verify_email,
+        name="verify_email",
+    ),
 ]
