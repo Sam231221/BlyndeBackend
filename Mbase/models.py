@@ -9,6 +9,7 @@ from django.db import models
 
 class User(AbstractUser):
     email_verified = models.BooleanField(default=False)
+    profle_pic = models.URLField(null=True, blank=True)
 
     def __str__(self):
         return str(self.username)
