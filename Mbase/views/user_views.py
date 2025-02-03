@@ -5,6 +5,7 @@ from django.conf import settings
 from Mbase.serializers import (
     PasswordChangeSerializer,
     UserSerializer,
+    UserCreateSerializer,
     UserSerializerWithToken,
 )
 
@@ -249,6 +250,16 @@ def listUsers(request):
     return Response(serializer.data)
 
 
+@api_view(["POST"])
+@permission_classes([IsAdminUser, IsAuthenticated])
+def createUser(request):
+    serializer = UserCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def getUserDetails(request, pk):
@@ -264,10 +275,12 @@ def updateUser(request, pk):
 
     data = request.data
 
-    user.first_name = data["name"]
+    user.first_name = data["first_name"]
+    user.last_name = data["last_name"]
+    user.username = data["username"]
     user.username = data["email"]
     user.email = data["email"]
-    user.is_staff = data["isAdmin"]
+    user.profile_pic = data["profile_pic"]
 
     user.save()
 
@@ -281,4 +294,4 @@ def updateUser(request, pk):
 def deleteUser(request, pk):
     userForDeletion = User.objects.get(id=pk)
     userForDeletion.delete()
-    return Response("User was deleted")
+    return Response("User was deleted", status=status.HTTP_200_OK)

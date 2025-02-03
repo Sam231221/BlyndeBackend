@@ -28,6 +28,27 @@ class PasswordChangeSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
 
 
+class UserCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "username",
+            "email",
+            "password",
+            "profile_pic",
+        )  # Include all necessary fields
+        extra_kwargs = {"password": {"write_only": True}}  # Make password write-only
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            **validated_data
+        )  # Use create_user for proper password hashing
+        return user
+
+
 class UserSerializer(serializers.ModelSerializer):
     # custom fields to be serialized.
     name = serializers.SerializerMethodField(read_only=True)
@@ -37,7 +58,17 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         # serialize only this field.
-        fields = ["id", "_id", "username", "profile_pic", "email", "name", "isAdmin"]
+        fields = [
+            "id",
+            "_id",
+            "first_name",
+            "last_name",
+            "username",
+            "profile_pic",
+            "email",
+            "name",
+            "isAdmin",
+        ]
 
     # obj is User Instance
     def get__id(self, obj):
