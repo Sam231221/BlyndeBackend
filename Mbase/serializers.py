@@ -37,7 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         # serialize only this field.
-        fields = ["id", "_id", "username", "email", "name", "isAdmin"]
+        fields = ["id", "_id", "username", "profile_pic", "email", "name", "isAdmin"]
 
     # obj is User Instance
     def get__id(self, obj):
@@ -65,6 +65,7 @@ class UserSerializerWithToken(UserSerializer):
             "username",
             "first_name",
             "email",
+            "profile_pic",
             "name",
             "isAdmin",
             "token",
