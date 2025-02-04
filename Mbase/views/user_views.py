@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
-
+from datetime import timedelta
 from django.db.utils import IntegrityError
 from django.contrib.auth import authenticate
 
@@ -43,6 +43,7 @@ User = get_user_model()
 def loginUser(request, *args, **kwargs):
     username = request.data["email"]
     password = request.data["password"]
+    remember_me = request.data.get("rememberMe")
     required_fields = [
         "email",
         "password",
@@ -66,7 +67,9 @@ def loginUser(request, *args, **kwargs):
                 )
 
             refresh = RefreshToken.for_user(user)
-
+            if remember_me:
+                # Set longer expiry time for refresh token
+                refresh.set_exp(lifetime=timedelta(days=3))
             return Response(
                 {
                     "id": user.id,
