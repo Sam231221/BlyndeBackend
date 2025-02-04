@@ -3,9 +3,7 @@ from Mbase.views import user_views as views
 
 
 urlpatterns = [
-    path(
-        "login/", views.MyTokenObtainPairView.as_view(), name="user-token-obtain-pair"
-    ),
+    path("login/", views.loginUser, name="user-token-obtain-pair"),
     path("register/", views.registerUser, name="user-register"),
     path("profile/", views.getUserProfile, name="users-profile"),
     path("list/", views.listUsers, name="user-list"),

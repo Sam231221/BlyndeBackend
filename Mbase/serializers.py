@@ -95,10 +95,9 @@ class UserSerializerWithToken(UserSerializer):
             "_id",
             "username",
             "first_name",
+            "last_name",
             "email",
             "profile_pic",
-            "name",
-            "isAdmin",
             "token",
         ]
 

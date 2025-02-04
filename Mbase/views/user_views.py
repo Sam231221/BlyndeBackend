@@ -2,24 +2,30 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
+
+from django.db.utils import IntegrityError
+from django.contrib.auth import authenticate
+
+
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status, serializers
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import ValidationError
+from django.contrib.auth import update_session_auth_hash
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from django.contrib.auth import get_user_model
 from Mbase.serializers import (
     PasswordChangeSerializer,
     UserSerializer,
     UserCreateSerializer,
     UserSerializerWithToken,
 )
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.response import Response
-from rest_framework import status
-
-from django.contrib.auth import update_session_auth_hash
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
-
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 # from django.contrib.auth.tokens import default_token_generator
@@ -32,31 +38,56 @@ User = get_user_model()
 #     return uid, token
 
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    # this function returns actual response to frontend.
-    """
-    refresh and access are returned under hood(Hover the pointer over TokenObtainPairSerializer and click on it for more details. )
-        data["refresh"] = str(refresh)
-        data["access"] = str(refresh.access_token)
-    """
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def loginUser(request, *args, **kwargs):
+    username = request.data["email"]
+    password = request.data["password"]
+    required_fields = [
+        "email",
+        "password",
+    ]
+    missing_fields = [field for field in required_fields if not request.data.get(field)]
 
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        serializer = UserSerializerWithToken(self.user).data
+    if missing_fields:
+        return Response(
+            {"errors": {field: f"{field} is required" for field in missing_fields}},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-        """
-        serializer: {'id': 1, '_id': 1, 'username': 'Sam', 'email': 'samirshahi9882@gmail.com', 'name': 'samirshahi9882@gmail.com', 'isAdmin': True, 
-        'token': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjY0Nzg0MDEyLCJpYXQiOjE2NjIxOTIwMTIsImp0aSI6IjFhYzRhNjFjYTgwMzQwNGE4ZmUwNDIzZTM4YTEyNDY1IiwidXNlcl9pZCI6MX0.dnV2PalNENdhO8Iw3_RE2A4Ipq4gTRBELzfyXNuRMf8'}    
-            
-            """
+    else:
+        user = authenticate(request, username=username, password=password)
 
-        for key, value in serializer.items():
-            data[key] = value
-        return data
+        if user:
+            if not user.email_verified:  # Check if the user is active
+                return Response(
+                    {"errors": {"general": "User account is verified yet."}},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
 
+            refresh = RefreshToken.for_user(user)
 
-class MyTokenObtainPairView(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
+            return Response(
+                {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "profile_pic": user.profile_pic,
+                    # Add other relevant user fields
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "refresh": str(refresh),
+                    # access
+                    "token": str(refresh.access_token),
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        else:  # Authentication failed
+            return Response(
+                {"errors": {"general": "Invalid credentials"}},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 @api_view(["POST"])
@@ -64,20 +95,41 @@ def registerUser(request):
     data = request.data
 
     # Validate Emtyness
-    required_fields = ["name", "email", "password"]
-    for field in required_fields:
-        if field not in data or not data[field]:
-            return Response(
-                {"detail": f"{field} is required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-    # Validate Password Length
-    if len(data["password"]) < 8:
+    required_fields = [
+        "username",
+        "firstName",
+        "lastName",
+        "email",
+        "password",
+        "confirmPassword",
+        "agreeToTerms",
+    ]
+    # Validate required fields
+    missing_fields = [field for field in required_fields if not data.get(field)]
+    if missing_fields:
         return Response(
-            {"detail": "Password must be at least 8 characters long"},
+            {"errors": {field: f"{field} is required" for field in missing_fields}},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    # Validate agreeToTerms
+    if not data.get("agreeToTerms"):
+        return Response(
+            {"errors": {"agreeToTerms": "You must agree to the terms and conditions"}},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    # Validate password length
+    if len(data["password"]) < 8:
+        return Response(
+            {"errors": {"password": "Password must be at least 8 characters long"}},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+        # Validate password match
+    if data["password"] != data["confirmPassword"]:
+        return Response(
+            {"errors": {"confirmPassword": "Passwords do not match"}},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     try:
         # Check if email already exists
         if User.objects.filter(email=data["email"]).exists():
@@ -85,22 +137,33 @@ def registerUser(request):
                 {"detail": "User with this email already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         # Create user
-        user = User.objects.create(
-            first_name=data["name"],
-            username=data["email"],  # Username is set to email for simplicity
+        user = User(
+            username=data["username"],
+            first_name=data["firstName"],
+            last_name=data["lastName"],
             email=data["email"],
-            password=make_password(data["password"]),  # Hash the password
         )
-
+        user.set_password(data["password"])  # Proper way to hash password
+        user.agreed_to_terms = True
+        user.save()
         # Serialize user data with token
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    except IntegrityError:
+        return Response(
+            {"errors": {"email": "User with this email already exists"}},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     except Exception as e:
         return Response(
-            {"detail": "An error occurred while creating the user", "error": str(e)},
+            {
+                "errors": {
+                    "server": "An error occurred while creating the user",
+                    "detail": str(e),
+                }
+            },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 

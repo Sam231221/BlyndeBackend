@@ -10,6 +10,7 @@ from django.db import models
 class User(AbstractUser):
     email_verified = models.BooleanField(default=False)
     profile_pic = models.URLField(null=True, blank=True)
+    agreed_to_terms = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.username)
