@@ -3,6 +3,12 @@ from Mbase.views import user_views as views
 
 
 urlpatterns = [
+    path(
+        "password-reset/confirm/",
+        views.confirm_password_reset,
+        name="password_reset_confirm",
+    ),
+    path("password-reset/", views.request_password_reset, name="password_reset"),
     path("login/", views.loginUser, name="user-token-obtain-pair"),
     path("register/", views.registerUser, name="user-register"),
     path("profile/", views.getUserProfile, name="users-profile"),

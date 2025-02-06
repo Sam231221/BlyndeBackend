@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     "django_filters",
     "corsheaders",
     "whitenoise",
-    "django_rest_passwordreset",
 ]
 
 

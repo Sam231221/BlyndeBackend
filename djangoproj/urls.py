@@ -17,15 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/products/", include("Mbase.urls.product_urls")),
     path("api/users/", include("Mbase.urls.user_urls")),
     path("api/orders/", include("Mbase.urls.order_urls")),
-    path(
-        "api/password_reset/",
-        include("django_rest_passwordreset.urls", namespace="password_reset"),
-    ),
 ]
 
 
