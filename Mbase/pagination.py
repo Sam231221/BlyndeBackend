@@ -20,3 +20,21 @@ class ProductPagination(PageNumberPagination):
                 "results": data,
             }
         )
+
+
+class OrderPagination(PageNumberPagination):
+    page_size = 10  # Default page size
+    page_size_query_param = "limit"  # Allow client to override page size
+    max_page_size = 100  # Set a maximum page size
+
+    def get_paginated_response(self, data):
+        return Response(
+            {
+                "count": self.page.paginator.count,
+                "total_pages": self.page.paginator.num_pages,
+                "current_page": self.page.number,
+                "results": data,
+                "next": self.get_next_link(),
+                "previous": self.get_previous_link(),
+            }
+        )

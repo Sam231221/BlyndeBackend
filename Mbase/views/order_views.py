@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from datetime import datetime
 from django.utils import timezone
+from Mbase.pagination import OrderPagination
 
 
 class GetOrdersView(APIView):
@@ -95,11 +96,23 @@ class GetMyOrdersView(APIView):
 
     def get(self, request):
         user = request.user
-        print("sd:", user)
         orders = user.order_set.order_by("-_id")
-        print(orders)
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+        # Sorting
+        ordering = request.GET.get("sortBy", None)
+        sort_order = request.GET.get("sortOrder", "asc")  # Default ascending
+        print(ordering, sort_order)
+        if ordering:
+            if sort_order == "desc":
+                ordering = f"-{ordering}"  # Add negative sign for descending
+            orders = orders.order_by(ordering)
+
+        # Pagination
+        paginator = OrderPagination()
+        page = paginator.paginate_queryset(orders, request)
+
+        serializer = OrderSerializer(page, many=True)  # Use your OrderSerializer
+        print(serializer.data)
+        return paginator.get_paginated_response(serializer.data)
 
 
 class UpdateOrderToPaidView(APIView):
