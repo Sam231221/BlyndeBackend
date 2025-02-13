@@ -40,9 +40,13 @@ class Category(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=50, null=True)
     parent = models.ForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="children",
     )
-    slug = models.SlugField(null=True, editable=False)
+    slug = models.SlugField(null=True, blank=True)
 
     def __str__(self):
         if self.parent:
@@ -56,10 +60,11 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if self.parent:
-            self.slug = slugify(str(self.name) + "-" + str(self.parent))
+            # Use parent's SLUG instead of NAME
+            self.slug = slugify(f"{self.name}-{self.parent.slug}")
         else:
-            self.slug = slugify(str(self.name))
-        super(Category, self).save(*args, **kwargs)
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Category"
@@ -87,7 +92,7 @@ class Product(models.Model):
     brand = models.CharField(max_length=200, null=True, blank=True)
     colors = models.ManyToManyField(Color)
     size = models.ManyToManyField(Size)
-    categories = models.ManyToManyField(Category, related_name="products")
+    categories = models.ManyToManyField(Category)
     description = models.TextField(null=True, blank=True)
     rating = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
     review_count = models.PositiveIntegerField(default=0, editable=False)

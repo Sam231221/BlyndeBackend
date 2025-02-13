@@ -107,10 +107,43 @@ class UserSerializerWithToken(UserSerializer):
         return str(token.access_token)
 
 
+from rest_framework import serializers
+from django.db.models import Count
+from .models import Category
+
+
 class CategorySerializer(serializers.ModelSerializer):
+    product_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Category
         fields = "__all__"
+
+
+class RecursiveCategorySerializer(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+    product_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Category
+        fields = ["_id", "name", "slug", "children", "product_count"]
+
+    def get_children(self, obj):
+        if obj.children.exists():
+            serializer = self.__class__(
+                obj.children.all(), many=True, context=self.context
+            )
+            return serializer.data
+        return []
+
+
+class CategoryWithChildrenSerializer(serializers.ModelSerializer):
+    children = RecursiveCategorySerializer(many=True, read_only=True)
+    product_count = serializers.IntegerField()
+
+    class Meta:
+        model = Category
+        fields = ["_id", "name", "slug", "children", "product_count"]
 
 
 class ColorSerializer(serializers.ModelSerializer):

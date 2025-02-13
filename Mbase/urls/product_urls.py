@@ -10,6 +10,11 @@ urlpatterns = [
     ),
     path("sizes/", views.SizeListView.as_view(), name="sizes"),
     path("categories/", views.CategoryListView.as_view(), name="categories"),
+    path(
+        "nested-categories/",
+        views.NestedCategoryListView.as_view(),
+        name="categories0nested",
+    ),
     path("colors/", views.ColorListView.as_view(), name="colors"),
     # Product list types
     path("", views.ProductsView.as_view(), name="products"),

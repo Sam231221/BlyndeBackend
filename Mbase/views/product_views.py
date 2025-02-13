@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -22,6 +22,7 @@ from Mbase.models import (
 )
 from Mbase.serializers import (
     CategorySerializer,
+    CategoryWithChildrenSerializer,
     SizeSerializer,
     DiscountOffersSerializer,
     ImageAlbumSerializer,
@@ -68,14 +69,22 @@ class CategoryListView(generics.ListAPIView):
     serializer_class = CategorySerializer
 
     def get_queryset(self):
-        return Category.objects.all().exclude(name__icontains="deals")
+        return (
+            Category.objects.annotate(product_count=Count("products"))
+            .exclude(name__icontains="deals")
+            .exclude(name__icontains="packs")
+        )
 
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        for category in response.data:
-            category_obj = Category.objects.filter(_id=category["_id"]).first()
-            category["genres"] = list(category_obj.genre_set.values())
-        return Response(response.data)
+
+class NestedCategoryListView(generics.ListAPIView):
+    serializer_class = CategoryWithChildrenSerializer
+
+    def get_queryset(self):
+        return (
+            Category.objects.annotate(product_count=Count("products"))
+            .exclude(name__icontains="deals")
+            .exclude(name__icontains="packs")
+        )
 
 
 class ProductListView(generics.ListAPIView):
