@@ -122,7 +122,7 @@ def confirm_password_reset(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def loginUser(request):
-    username = request.data["email"]
+    email = request.data["email"]
     password = request.data["password"]
     remember_me = request.data.get("rememberMe")
     required_fields = [
@@ -138,7 +138,7 @@ def loginUser(request):
         )
 
     else:
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=email, password=password)
 
         if user:
             if not user.email_verified:  # Check if the user is active

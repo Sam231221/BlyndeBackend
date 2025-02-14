@@ -9,11 +9,11 @@ urlpatterns = [
         name="delete_discount_offer",
     ),
     path("sizes/", views.SizeListView.as_view(), name="sizes"),
-    path("categories/", views.CategoryListView.as_view(), name="categories"),
+    # path("categories/", views.CategoryListView.as_view(), name="categories"),
     path(
-        "nested-categories/",
+        "categories/",
         views.NestedCategoryListView.as_view(),
-        name="categories0nested",
+        name="categories",
     ),
     path("colors/", views.ColorListView.as_view(), name="colors"),
     # Product list types

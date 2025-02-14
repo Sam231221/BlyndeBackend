@@ -70,7 +70,7 @@ class CategoryListView(generics.ListAPIView):
 
     def get_queryset(self):
         return (
-            Category.objects.annotate(product_count=Count("products"))
+            Category.objects.annotate(product_count=Count("categories"))
             .exclude(name__icontains="deals")
             .exclude(name__icontains="packs")
         )
@@ -81,7 +81,7 @@ class NestedCategoryListView(generics.ListAPIView):
 
     def get_queryset(self):
         return (
-            Category.objects.annotate(product_count=Count("products"))
+            Category.objects.annotate(product_count=Count("categories"))
             .exclude(name__icontains="deals")
             .exclude(name__icontains="packs")
         )

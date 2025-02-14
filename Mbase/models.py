@@ -92,7 +92,7 @@ class Product(models.Model):
     brand = models.CharField(max_length=200, null=True, blank=True)
     colors = models.ManyToManyField(Color)
     size = models.ManyToManyField(Size)
-    categories = models.ManyToManyField(Category)
+    categories = models.ManyToManyField(Category, related_name="categories")
     description = models.TextField(null=True, blank=True)
     rating = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
     review_count = models.PositiveIntegerField(default=0, editable=False)
