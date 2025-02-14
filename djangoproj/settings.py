@@ -182,7 +182,7 @@ AUTH_USER_MODEL = "Mbase.User"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_TRUSTED_ORIGINS = [
-    "https://relshop.up.railway.app",
+    "https://blynde.up.railway.app",
     "http://localhost:5173/",
 ]
 
