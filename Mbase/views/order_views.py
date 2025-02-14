@@ -1,6 +1,6 @@
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-
+from django.db import transaction
 from Mbase.models import Product, Order, OrderItem, ShippingAddress
 from Mbase.serializers import OrderSerializer
 
@@ -39,6 +39,7 @@ class AddOrderItemsView(APIView):
             taxPrice=data["taxPrice"],
             shippingPrice=data["shippingPrice"],
             totalPrice=data["totalPrice"],
+            itemsPrice=data["itemsPrice"],
         )
 
         # (2) Create shipping address
@@ -59,7 +60,7 @@ class AddOrderItemsView(APIView):
                 name=product.name,
                 color=item_data["color"],
                 size=item_data["size"],
-                qty=int(item_data["quantity"]),
+                qty=int(item_data["qty"]),
                 price=item_data["price"],
                 thumbnail=product.thumbnail.url,
             )
@@ -115,23 +116,40 @@ class GetMyOrdersView(APIView):
         return paginator.get_paginated_response(serializer.data)
 
 
+# prevent race conditions
 class UpdateOrderToPaidView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, pk):
         try:
-            order = Order.objects.get(_id=pk)
-            order.isPaid = True
-            order.paidAt = timezone.now()
-            order.save()
-            return Response(
-                {"detail": f"Order was paid at {order.paidAt}"},
-                status=status.HTTP_200_OK,
-            )
+            with transaction.atomic():  # Use atomic transaction for database integrity
+                # Use select_for_update() to lock the order row for exclusive access
+                order = Order.objects.select_for_update().get(_id=pk)
+
+                if (
+                    not order.isPaid
+                ):  # Only update if not already paid. Prevents multiple updates
+                    order.isPaid = True
+                    order.paidAt = timezone.now()
+                    order.save()
+                    return Response(
+                        {"detail": f"Order was paid at {order.paidAt}"},
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        {"detail": "Order is already paid"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
 
         except Order.DoesNotExist:
             return Response(
                 {"detail": "Order does not exist"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:  # Catch any other potential exceptions
+            return Response(
+                {"detail": f"An error occurred: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 

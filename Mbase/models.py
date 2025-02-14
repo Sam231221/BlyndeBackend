@@ -214,6 +214,9 @@ def update_product_rating(sender, instance, **kwargs):
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     paymentMethod = models.CharField(max_length=200, null=True, blank=True)
+    itemsPrice = models.DecimalField(
+        max_digits=7, decimal_places=2, null=True, blank=True
+    )
     taxPrice = models.DecimalField(
         max_digits=7, decimal_places=2, null=True, blank=True
     )
@@ -261,4 +264,4 @@ class ShippingAddress(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
 
     def __str__(self):
-        return f"{self.address}, {self.city}, {self.country} for order {self.order._id} by {self.order.user.username}"
+        return f"{self.address}, {self.city}, {self.country} for order {self.order._id} by {self.order.user}"
