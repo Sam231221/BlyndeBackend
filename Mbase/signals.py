@@ -17,6 +17,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+from decouple import config
+
+current_site = config("SITE_URL")
 
 
 # Signal for Welcome & Email Verification
@@ -25,9 +28,7 @@ def send_email_verification(sender, instance, created, **kwargs):
     if created and not instance.email_verified:
         uidb64 = urlsafe_base64_encode(force_bytes(instance.pk))
         token = default_token_generator.make_token(instance)
-        verification_link = (
-            f"http://127.0.0.1:8000/api/users/verify-email/{uidb64}/{token}/"
-        )
+        verification_link = f"{current_site}/api/users/verify-email/{uidb64}/{token}/"
         subject = "Email Verification for Your Account"
         message = f"Please click the link below to verify your email address:\n\n{verification_link}"
         from_email = settings.EMAIL_HOST_USER

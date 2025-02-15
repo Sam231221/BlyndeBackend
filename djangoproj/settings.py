@@ -18,19 +18,11 @@ from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# load_dotenv(os.path.join(BASE_DIR, ".env"))
-
-# # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-
 # ALLOWED_HOSTS = ["127.0.0.1", "localhost", "*"]
 
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=True, cast=bool)
-# SECRET_KEY = config("SECRET_KEY")
 
-# DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -183,7 +175,8 @@ AUTH_USER_MODEL = "Mbase.User"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CSRF_TRUSTED_ORIGINS = [
     "https://blynde.up.railway.app",
-    "http://localhost:5173/",
+    "https://blynde.netlify.app",
+    "http://localhost:5173",
 ]
 
 
@@ -193,6 +186,6 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 
-EMAIL_HOST_USER = "dimensionalassistanceteam37@gmail.com"
-EMAIL_HOST_PASSWORD = "cpmh dutp nobr eliu"
-GOOGLE_RECAPTCHA_SECRET_KEY = "6LdaeUAfAAAAAM9bU8TxfRTky-ok_qnhsF6gq-za"
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+GOOGLE_RECAPTCHA_SECRET_KEY = config("GOOGLE_RECAPTCHA_SECRET_KEY")
