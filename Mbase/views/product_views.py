@@ -5,8 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, generics
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -87,13 +88,21 @@ class NestedCategoryListView(generics.ListAPIView):
         )
 
 
+# http://localhost:5173/shop?min_price=0&max_price=600&categories=men%2Cshoes-men
 class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.all()
+    queryset = Product.objects.prefetch_related(
+        "colors",
+        "size",
+        "categories",
+    )
+    # Optimized query
+    # queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = ProductFilter
     pagination_class = ProductPagination
     search_fields = ["name", "description"]
+    ordering_fields = ["price", "createdAt", "review_count"]
 
 
 class SizeListView(APIView):

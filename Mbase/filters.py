@@ -9,7 +9,7 @@ class ProductFilter(django_filters.FilterSet):
         label="Filter by category slugs (comma-separated)",
     )
     color = django_filters.CharFilter(
-        field_name="colors__name", lookup_expr="icontains"
+        field_name="colors__name", lookup_expr="iexact"
     )  # Case-insensitive contains
     min_price = django_filters.NumberFilter(field_name="price", lookup_expr="gte")
     max_price = django_filters.NumberFilter(field_name="price", lookup_expr="lte")
