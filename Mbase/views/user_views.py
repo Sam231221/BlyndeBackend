@@ -324,7 +324,7 @@ def getUserProfile(request):
         data = request.data
         # UserSerializerWithToken is used so only authenticated and owner can update it.
         serializer = UserSerializerWithToken(user, many=False)
-        user.first_name = data["name"]
+        user.first_name = data["first_name"]
         user.username = data["email"]
         user.email = data["email"]
         user.save()

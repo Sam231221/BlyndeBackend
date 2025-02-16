@@ -1,12 +1,5 @@
-from django.db.models.signals import pre_save, post_save
-
-
-from django.core.mail import EmailMultiAlternatives
+from django.db.models.signals import pre_save, post_save, pre_delete
 from django.dispatch import receiver
-from django.template.loader import render_to_string
-
-from django.urls import reverse
-
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
@@ -21,8 +14,24 @@ from decouple import config
 
 current_site = config("SITE_URL")
 
+import imagekitio
+from .models import Genre
 
-# Signal for Welcome & Email Verification
+
+@receiver(pre_delete, sender=Genre)
+def delete_imagekit_file(sender, instance, **kwargs):
+    if instance.image_file_id:
+        imagekit = imagekitio.ImageKit(
+            private_key=settings.IMAGEKIT["PRIVATE_KEY"],
+            public_key=settings.IMAGEKIT["PUBLIC_KEY"],
+            url_endpoint=settings.IMAGEKIT["URL_ENDPOINT"],
+        )
+        try:
+            imagekit.delete_file(file_id=instance.image_file_id)
+        except Exception as e:
+            pass
+
+
 @receiver(post_save, sender=User)
 def send_email_verification(sender, instance, created, **kwargs):
     if created and not instance.email_verified:
@@ -47,7 +56,6 @@ def send_welcome_email(sender, instance, created, **kwargs):
         send_mail(subject, message, from_email, recipient_list)
 
 
-# Every time email is updated, update username with that email.
 def updateUser(sender, instance, **kwargs):
     user = instance
     if user.email != "":

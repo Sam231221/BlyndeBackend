@@ -71,8 +71,21 @@ class Category(models.Model):
         verbose_name_plural = "Categories"
 
 
+# class MyModel(models.Model):
+#     name = models.CharField(max_length=100, null=True)
+#     image_file_id = models.CharField(null=True, max_length=255, blank=True)
+#     image_url = models.URLField(null=True, blank=True)
+
+#     def image_preview(self):
+#         if self.image_url:
+#             return mark_safe(f'<img src="{self.image_url}" width="150" />')
+#         return "No Image"
+
+
 class Genre(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
+    image_file_id = models.CharField(null=True, max_length=255, blank=True)
+    image_url = models.URLField(null=True, blank=True)
     name = models.CharField(max_length=50, null=True)
     slug = models.SlugField(null=True, editable=False)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
@@ -83,6 +96,11 @@ class Genre(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(Genre, self).save(*args, **kwargs)
+
+    def image_preview(self):
+        if self.image_url:
+            return mark_safe(f'<img src="{self.image_url}" width="150" />')
+        return "No Image"
 
 
 class Product(models.Model):
