@@ -1,10 +1,8 @@
 from django.contrib import admin
-from django.conf import settings
-import imagekitio
-import base64
-from .forms import GenreAdminForm
-from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 from .models import (
     Category,
     Size,
@@ -17,91 +15,108 @@ from .models import (
     Review,
     ShippingAddress,
     DiscountOffers,
-    Genre,
 )
-
+from .forms import GenreAdminForm, UserAdminForm
+from .mixins.imagekit import ImageKitMixin
 
 admin.site.register(
     (Category, DiscountOffers, Size, Color, Order, OrderItem, ShippingAddress)
 )
 
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth import get_user_model
 
-User = get_user_model()
+class CustomUserAdmin(UserAdmin, ImageKitMixin):
+    form = UserAdminForm
+    list_display = (
+        "email",
+        "first_name",
+        "last_name",
+        "email_verified",
+        "agreed_to_terms",
+    )
+    list_filter = ("email_verified", "agreed_to_terms")
+    search_fields = ("username", "email")
+
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        (
+            "Personal Info",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "image_preview",
+                    "image",
+                    "remove_image",
+                    "email",
+                    "profile_pic_id",
+                    "profile_pic_url",
+                )
+            },
+        ),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
+        ("Important Dates", {"fields": ("last_login", "date_joined")}),
+        ("Verification and Terms", {"fields": ("email_verified", "agreed_to_terms")}),
+    )
+
+    readonly_fields = ("image_preview",)
+
+    def save_model(self, request, obj, form, change):
+        if form.cleaned_data.get("remove_image"):
+            if obj.profile_pic_id:
+                self._delete_imagekit_file(obj.profile_pic_id)
+                obj.profile_pic_id = ""
+                obj.profile_pic_url = ""
+
+        new_image = form.cleaned_data.get("image")
+        if new_image:
+            if change and obj.profile_pic_id:
+                self._delete_imagekit_file(obj.profile_pic_id)
+
+            upload_response = self._upload_to_imagekit(new_image, "/Blynde/Users/")
+            obj.profile_pic_id = upload_response.file_id
+            obj.profile_pic_url = upload_response.url
+
+        super().save_model(request, obj, form, change)
+
+
+admin.site.register(User, CustomUserAdmin)
 
 
 @admin.register(Genre)
-class GenreAdmin(admin.ModelAdmin):
+class GenreAdmin(admin.ModelAdmin, ImageKitMixin):
     form = GenreAdminForm
     list_display = ("name", "image_preview")
     readonly_fields = ("image_preview", "image_url")
     fields = ("name", "image_preview", "image", "remove_image", "image_url")
 
     def save_model(self, request, obj, form, change):
-        # Delete existing image if "remove_image" is checked
         if form.cleaned_data.get("remove_image"):
             if obj.image_file_id:
                 self._delete_imagekit_file(obj.image_file_id)
                 obj.image_file_id = ""
                 obj.image_url = ""
 
-        # Handle new image upload
         new_image = form.cleaned_data.get("image")
         if new_image:
-            # Delete old image if it exists
             if change and obj.image_file_id:
                 self._delete_imagekit_file(obj.image_file_id)
 
-            # Upload new image to ImageKit
-            upload_response = self._upload_to_imagekit(new_image)
+            upload_response = self._upload_to_imagekit(new_image, "/Blynde/Products/")
             obj.image_file_id = upload_response.file_id
             obj.image_url = upload_response.url
 
         super().save_model(request, obj, form, change)
-
-    def _upload_to_imagekit(self, image_file):
-        imagekit = imagekitio.ImageKit(
-            private_key=settings.IMAGEKIT["PRIVATE_KEY"],
-            public_key=settings.IMAGEKIT["PUBLIC_KEY"],
-            url_endpoint=settings.IMAGEKIT["URL_ENDPOINT"],
-        )
-        file_binary = image_file.read()
-        # Encode the binary data to Base64
-        file_base64 = base64.b64encode(file_binary).decode("utf-8")
-        response = imagekit.upload_file(
-            file=file_base64,
-            file_name=image_file.name,
-            options=UploadFileRequestOptions(
-                use_unique_file_name=False,
-                folder="/Blynde/Products/",
-            ),
-        )
-
-        return response
-
-    def _delete_imagekit_file(self, file_id):
-        imagekit = imagekitio.ImageKit(
-            private_key=settings.IMAGEKIT["PRIVATE_KEY"],
-            public_key=settings.IMAGEKIT["PUBLIC_KEY"],
-            url_endpoint=settings.IMAGEKIT["URL_ENDPOINT"],
-        )
-        try:
-            imagekit.delete_file(file_id)
-        except Exception as e:
-            # Log errors here (e.g., using logging module)
-            pass
-
-
-class UserAdmin(UserAdmin):
-    model = User
-    list_display = ["username", "email", "email_verified", "is_staff", "is_active"]
-    list_filter = ["is_staff", "is_active", "email_verified"]
-    search_fields = ["email", "username"]
-
-
-admin.site.register(User, UserAdmin)
 
 
 class ReviewAdmin(admin.ModelAdmin):

@@ -8,12 +8,18 @@ from django.db import models
 
 
 class User(AbstractUser):
+    profile_pic_id = models.CharField(null=True, max_length=255, blank=True)
     email_verified = models.BooleanField(default=False)
-    profile_pic = models.URLField(null=True, blank=True)
+    profile_pic_url = models.URLField(null=True, blank=True)
     agreed_to_terms = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.username)
+
+    def image_preview(self):
+        if self.profile_pic_url:
+            return mark_safe(f'<img src="{self.profile_pic_url}" width="80" />')
+        return "No Image"
 
 
 class Size(models.Model):
@@ -71,17 +77,6 @@ class Category(models.Model):
         verbose_name_plural = "Categories"
 
 
-# class MyModel(models.Model):
-#     name = models.CharField(max_length=100, null=True)
-#     image_file_id = models.CharField(null=True, max_length=255, blank=True)
-#     image_url = models.URLField(null=True, blank=True)
-
-#     def image_preview(self):
-#         if self.image_url:
-#             return mark_safe(f'<img src="{self.image_url}" width="150" />')
-#         return "No Image"
-
-
 class Genre(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
     image_file_id = models.CharField(null=True, max_length=255, blank=True)
@@ -99,7 +94,7 @@ class Genre(models.Model):
 
     def image_preview(self):
         if self.image_url:
-            return mark_safe(f'<img src="{self.image_url}" width="150" />')
+            return mark_safe(f'<img src="{self.image_url}" width="80" />')
         return "No Image"
 
 
