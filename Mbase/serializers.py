@@ -64,7 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "username",
-            "profile_pic",
+            "profile_pic_url",
             "email",
             "name",
             "isAdmin",
@@ -97,7 +97,7 @@ class UserSerializerWithToken(UserSerializer):
             "first_name",
             "last_name",
             "email",
-            "profile_pic",
+            "profile_pic_url",
             "token",
         ]
 

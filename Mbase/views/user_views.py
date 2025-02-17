@@ -1,7 +1,7 @@
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-
+import base64
 from django.conf import settings
 from datetime import timedelta
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -25,6 +25,7 @@ from Mbase.serializers import (
     UserCreateSerializer,
     UserSerializerWithToken,
 )
+from Mbase.mixins.imagekit import imagekit
 
 User = get_user_model()
 
@@ -156,7 +157,7 @@ def loginUser(request):
                     "id": user.id,
                     "username": user.username,
                     "email": user.email,
-                    "profile_pic": user.profile_pic,
+                    "profile_pic_url": user.profile_pic_url,
                     "first_name": user.first_name,
                     "last_name": user.last_name,
                     "refresh": str(refresh),
@@ -311,24 +312,59 @@ def change_password(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+
+
 @api_view(["GET", "PUT"])
+@parser_classes([MultiPartParser, FormParser])
 @permission_classes([IsAuthenticated])
 def getUserProfile(request):
     user = request.user
+
     if request.method == "GET":
-        # Get user profile data USING UserSerializer NO NEED TO USE UserSerializerWithToken
+        # Get user profile data
         serializer = UserSerializer(user, many=False)
         return Response(serializer.data)
+
     elif request.method == "PUT":
         # Update user profile data
         data = request.data
-        # UserSerializerWithToken is used so only authenticated and owner can update it.
-        serializer = UserSerializerWithToken(user, many=False)
-        user.first_name = data["first_name"]
-        user.username = data["email"]
-        user.email = data["email"]
+        print(request.data)
+
+        # Update user fields
+        user.first_name = data.get("first_name", user.first_name)
+        user.last_name = data.get("last_name", user.last_name)
+        user.email = data.get("email", user.email)
+        print("sd", request.FILES.get("avatarU"))
+        avatar_file = request.FILES.get("avatarU")
+        # Handle avatar file upload to ImageKit
+        if avatar_file:
+            if user.profile_pic_id:
+                # Delete the existing avatar from ImageKit
+                imagekit.delete_file(user.profile_pic_id)
+            # Upload the avatar to ImageKit
+            upload_response = imagekit.upload_file(
+                file=base64.b64encode(avatar_file.read()).decode(
+                    "utf-8"
+                ),  # Pass the binary data
+                file_name=f"avataR- {avatar_file.name}",  # Use a unique file name
+                options=UploadFileRequestOptions(
+                    use_unique_file_name=False,
+                    folder="/Blynde/Users/",
+                ),
+            )
+
+            # Save the ImageKit file ID and URL to the user model
+            print("upload_response:", upload_response.file_id, upload_response.url)
+            user.profile_pic_id = upload_response.file_id
+            user.profile_pic_url = upload_response.url
         user.save()
-        # returning user details with token
+        # Save the updated user object
+
+        # Return the updated user data
+        serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
