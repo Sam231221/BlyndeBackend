@@ -15,7 +15,9 @@ class User(AbstractUser):
 
     def image_preview(self):
         if self.profile_pic_url:
-            return mark_safe(f'<img src="{self.profile_pic_url}" width="80" />')
+            return mark_safe(
+                f'<img style="object-fit:contain;" width="120" height="80" src="{self.profile_pic_url}" />'
+            )
         return "No Image"
 
 
@@ -91,14 +93,17 @@ class Genre(models.Model):
 
     def image_preview(self):
         if self.image_url:
-            return mark_safe(f'<img src="{self.image_url}" width="80" />')
+            return mark_safe(
+                f'<img src="{self.image_url}" style="object-fit:contain;" width="120" height="80" />'
+            )
         return "No Image"
 
 
 class Product(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     name = models.CharField(max_length=200, null=True, blank=True)
-    thumbnail = models.ImageField(null=True, blank=True, default="/placeholder.png")
+    thumbnail_file_id = models.CharField(null=True, max_length=255, blank=True)
+    thumbnail_url = models.URLField(null=True, blank=True)
     brand = models.CharField(max_length=200, null=True, blank=True)
     colors = models.ManyToManyField(Color)
     size = models.ManyToManyField(Size)
@@ -117,7 +122,6 @@ class Product(models.Model):
     countInStock = models.IntegerField(null=True, blank=True, default=0)
     createdAt = models.DateTimeField(auto_now_add=True)
     _id = models.AutoField(primary_key=True, editable=False)
-    is_featured = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name="likes", default=None, blank=True)
     badge = models.CharField(
         max_length=20,
@@ -151,11 +155,12 @@ class Product(models.Model):
             )
         super().save(*args, **kwargs)
 
-    def image(self):
-        return mark_safe(
-            '<img style="object-fit:contain;" src="%s" width="50" height="50" />'
-            % (self.thumbnail.url)
-        )
+    def thumbnail_preview(self):
+        if self.thumbnail_url:
+            return mark_safe(
+                f'<img style="object-fit:contain;"  width="120" height="80" src="{self.thumbnail_url}"/>'
+            )
+        return "No Image"
 
     @property
     def effective_price(self):
@@ -163,6 +168,29 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name}"
+
+
+class ImageAlbum(models.Model):
+    image_file_id = models.CharField(null=True, max_length=255, blank=True)
+    image_url = models.URLField(null=True, blank=True)
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        help_text="Select the product you want to associate this image with.",
+        null=True,
+        verbose_name="Associated to",
+    )
+
+    def __str__(self):
+        return f"{self.image_url}"
+
+    def image_preview(self):
+        if self.image_url:
+            return mark_safe(f'<img src="{self.image_url}" width="80"/>')
+        return "No Image"
+
+    class Meta:
+        ordering = ["-id"]
 
 
 class DiscountOffers(models.Model):
@@ -176,24 +204,11 @@ class DiscountOffers(models.Model):
         max_digits=10, decimal_places=2, null=True, blank=True
     )
     countInStock = models.IntegerField(null=True, blank=True, default=0)
-
-    # make correction
     start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)  # Make end_date nullable
+    end_date = models.DateTimeField(null=True)
 
     def __str__(self):
         return self.name
-
-
-class ImageAlbum(models.Model):
-    image = models.ImageField(null=True)
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        help_text="Provide a url of image",
-        null=True,
-        verbose_name="images",
-    )
 
 
 class Review(models.Model):

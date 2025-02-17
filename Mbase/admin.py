@@ -16,7 +16,7 @@ from .models import (
     ShippingAddress,
     DiscountOffers,
 )
-from .forms import GenreAdminForm, UserAdminForm
+from .forms import GenreAdminForm, UserAdminForm, ProductAdminForm, ImageAlbumAdminForm
 from .mixins.imagekit import ImageKitMixin
 
 admin.site.register(
@@ -24,7 +24,8 @@ admin.site.register(
 )
 
 
-class CustomUserAdmin(UserAdmin, ImageKitMixin):
+@admin.register(User)
+class BlyndeUserAdmin(UserAdmin, ImageKitMixin):
     form = UserAdminForm
     list_display = (
         "email",
@@ -49,7 +50,6 @@ class CustomUserAdmin(UserAdmin, ImageKitMixin):
                     "remove_image",
                     "email",
                     "profile_pic_id",
-                    "profile_pic_url",
                 )
             },
         ),
@@ -90,15 +90,38 @@ class CustomUserAdmin(UserAdmin, ImageKitMixin):
         super().save_model(request, obj, form, change)
 
 
-admin.site.register(User, CustomUserAdmin)
-
-
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin, ImageKitMixin):
     form = GenreAdminForm
     list_display = ("name", "image_preview")
-    readonly_fields = ("image_preview", "image_url")
-    fields = ("name", "image_preview", "image", "remove_image", "image_url")
+    readonly_fields = ("image_preview",)
+    fields = ("name", "image_preview", "image", "remove_image")
+
+    def save_model(self, request, obj, form, change):
+        if form.cleaned_data.get("remove_image"):
+            if obj.image_file_id:
+                self._delete_imagekit_file(obj.image_file_id)
+                obj.image_file_id = ""
+                obj.image_url = ""
+
+        new_image = form.cleaned_data.get("image")
+        if new_image:
+            if change and obj.image_file_id:
+                self._delete_imagekit_file(obj.image_file_id)
+
+            upload_response = self._upload_to_imagekit(new_image, "/Blynde/Genres/")
+            obj.image_file_id = upload_response.file_id
+            obj.image_url = upload_response.url
+
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(ImageAlbum)
+class ImageAlbumAdmin(admin.ModelAdmin, ImageKitMixin):
+    form = ImageAlbumAdminForm
+    list_display = ("image_preview", "product")
+    readonly_fields = ("image_preview",)
+    fields = ("image_preview", "image", "remove_image", "product")
 
     def save_model(self, request, obj, form, change):
         if form.cleaned_data.get("remove_image"):
@@ -119,6 +142,70 @@ class GenreAdmin(admin.ModelAdmin, ImageKitMixin):
         super().save_model(request, obj, form, change)
 
 
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin, ImageKitMixin):
+    form = ProductAdminForm
+    list_display = [
+        "thumbnail_preview",
+        "name",
+        "price",
+        "badge",
+        "discount_percentage",
+        "rating",
+        "countInStock",
+    ]
+    # mark it to be shown properly in the admin panel, otherwise error
+    readonly_fields = ("thumbnail_preview",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "thumbnail",
+                    "thumbnail_preview",
+                    "remove_thumbnail",
+                )
+            },
+        ),
+        (
+            "Categorization",
+            {
+                "fields": (
+                    "brand",
+                    "categories",
+                    "colors",
+                    "size",
+                    "badge",
+                )
+            },
+        ),
+        ("Pricing", {"fields": ("price", "discount_percentage", "countInStock")}),
+        ("Other Details", {"fields": ("likes",)}),
+    )
+    list_editable = ["price"]
+
+    def save_model(self, request, obj, form, change):
+        print("a:asasa:", obj._id)
+        if form.cleaned_data.get("remove_thumbnail"):
+            if obj.thumbnail_file_id:
+                self._delete_imagekit_file(obj.thumbnail_file_id)
+                obj.thumbnail_file_id = ""
+                obj.thumbnail_url = ""
+        new_image = form.cleaned_data.get("thumbnail")
+        if new_image:
+            if change and obj.thumbnail_file_id:
+                self._delete_imagekit_file(obj.thumbnail_file_id)
+            upload_response = self._upload_to_imagekit(
+                new_image, f"/Blynde/Products/{obj._id}/"
+            )
+            obj.thumbnail_file_id = upload_response.file_id
+            obj.thumbnail_url = upload_response.url
+
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = (
         "comment",
@@ -128,29 +215,3 @@ class ReviewAdmin(admin.ModelAdmin):
     )
     list_filter = ("rating",)
     search_fields = ("product__name", "user__username")
-
-
-admin.site.register(Review, ReviewAdmin)
-
-
-class ImageAlbumAdmin(admin.TabularInline):
-    model = ImageAlbum
-
-
-class ProductAdmin(admin.ModelAdmin):
-    list_display = [
-        "image",
-        "name",
-        "price",
-        "badge",
-        "discount_percentage",
-        "is_featured",
-        "rating",
-        "countInStock",
-    ]
-    list_editable = ["price"]
-    inlines = [ImageAlbumAdmin]
-    extra = 5
-
-
-admin.site.register(Product, ProductAdmin)
