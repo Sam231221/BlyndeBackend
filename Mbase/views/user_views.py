@@ -1,4 +1,4 @@
-from django.contrib.auth.hashers import make_password
+import logging
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 import base64
@@ -26,11 +26,11 @@ from Mbase.serializers import (
     UserSerializerWithToken,
 )
 from Mbase.mixins.imagekit import imagekit
+from decouple import config
 
 User = get_user_model()
-
-
-FRONTEND_URL = "http://localhost:5173/request-reset-password/confirm?token="
+logger = logging.getLogger(__name__)
+FRONTEND_URL = f"http://localhost:5173/request-reset-password/confirm?token="
 
 
 # 1. Request Password Reset
@@ -70,7 +70,7 @@ def confirm_password_reset(request):
     token_data = request.data.get("token")
     new_password = request.data.get("new_password")
     confirm_password = request.data.get("confirm_password")
-    print(token_data, new_password, confirm_password)
+
     if not token_data or not new_password or not confirm_password:
         return Response(
             {"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST
@@ -253,6 +253,42 @@ def registerUser(request):
         )
 
 
+from rest_framework_simplejwt.exceptions import TokenError
+
+
+@api_view(["POST"])
+def logout(request):
+    refresh_token = request.data.get("refresh")
+
+    if not refresh_token:
+        return Response(
+            {"error": "Refresh token is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        token = RefreshToken(refresh_token)  # This can raise TokenError
+        token.blacklist()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    except TokenError as e:  # Catch the specific TokenError
+        logger.error(f"TokenError: {e}")  # Print the error for debugging.
+        return Response(
+            {"error": "Invalid or expired refresh token"},  # More accurate message
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    except Exception as e:  # This is for other exceptions that may occur.
+        logger.exception(
+            "An unexpected error occurred during logout"
+        )  # Print the error for debugging.
+        return Response(
+            {
+                "error": "An unexpected error occurred"
+            },  # Generic message for other errors
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,  # Appropriate status code
+        )
+
+
 @api_view(["GET"])
 def verify_email(request, uidb64, token):
     try:
@@ -331,13 +367,12 @@ def getUserProfile(request):
     elif request.method == "PUT":
         # Update user profile data
         data = request.data
-        print(request.data)
 
         # Update user fields
         user.first_name = data.get("first_name", user.first_name)
         user.last_name = data.get("last_name", user.last_name)
         user.email = data.get("email", user.email)
-        print("sd", request.FILES.get("avatarU"))
+
         avatar_file = request.FILES.get("avatarU")
         # Handle avatar file upload to ImageKit
         if avatar_file:
@@ -357,7 +392,6 @@ def getUserProfile(request):
             )
 
             # Save the ImageKit file ID and URL to the user model
-            print("upload_response:", upload_response.file_id, upload_response.url)
             user.profile_pic_id = upload_response.file_id
             user.profile_pic_url = upload_response.url
         user.save()

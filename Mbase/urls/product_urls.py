@@ -9,10 +9,9 @@ urlpatterns = [
         name="delete_discount_offer",
     ),
     path("sizes/", views.SizeListView.as_view(), name="sizes"),
-    # path("categories/", views.CategoryListView.as_view(), name="categories"),
     path(
         "categories/",
-        views.NestedCategoryListView.as_view(),
+        views.CategoryListView.as_view(),
         name="categories",
     ),
     path("colors/", views.ColorListView.as_view(), name="colors"),
@@ -42,7 +41,7 @@ urlpatterns = [
     ),
     # CRUD
     path("create/", views.CreateProductView.as_view(), name="product-create"),
-    path("<str:pk>/", views.ProductDetailView.as_view(), name="product-detail"),
     path("update/<str:pk>/", views.UpdateProductView.as_view(), name="product-update"),
     path("delete/<str:pk>/", views.DeleteProductView.as_view(), name="product-delete"),
+    path("<str:pk>/", views.ProductDetailView.as_view(), name="product-detail"),
 ]

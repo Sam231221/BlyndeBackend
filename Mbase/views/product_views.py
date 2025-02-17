@@ -67,17 +67,6 @@ class DiscountOfferDeleteView(APIView):
 
 
 class CategoryListView(generics.ListAPIView):
-    serializer_class = CategorySerializer
-
-    def get_queryset(self):
-        return (
-            Category.objects.annotate(product_count=Count("categories"))
-            .exclude(name__icontains="deals")
-            .exclude(name__icontains="packs")
-        )
-
-
-class NestedCategoryListView(generics.ListAPIView):
     serializer_class = CategoryWithChildrenSerializer
 
     def get_queryset(self):
@@ -86,23 +75,6 @@ class NestedCategoryListView(generics.ListAPIView):
             .exclude(name__icontains="deals")
             .exclude(name__icontains="packs")
         )
-
-
-# http://localhost:5173/shop?min_price=0&max_price=600&categories=men%2Cshoes-men
-class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.prefetch_related(
-        "colors",
-        "size",
-        "categories",
-    )
-    # Optimized query
-    # queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
-    filterset_class = ProductFilter
-    pagination_class = ProductPagination
-    search_fields = ["name", "description"]
-    ordering_fields = ["price", "createdAt", "review_count"]
 
 
 class SizeListView(APIView):
@@ -205,19 +177,31 @@ class FeaturedProductsView(generics.ListAPIView):
         return Response(response.data)
 
 
+class ProductListView(generics.ListAPIView):
+    queryset = Product.objects.prefetch_related(
+        "colors",
+        "size",
+        "categories",
+    )
+    serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = ProductFilter
+    pagination_class = ProductPagination
+    search_fields = ["name", "description"]
+    ordering_fields = ["price", "createdAt", "review_count"]
+
+
 class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
     lookup_field = "pk"
 
 
-# # Accepts POST method
 class CreateProductView(generics.CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductCreateUpdateSerializer
 
 
-# Accepts PUT, PATCH method
 class UpdateProductView(generics.UpdateAPIView):
     serializer_class = ProductCreateUpdateSerializer
     permission_classes = [IsAdminUser]
@@ -225,7 +209,6 @@ class UpdateProductView(generics.UpdateAPIView):
     lookup_field = "pk"
 
 
-# Accepts DELETE method
 class DeleteProductView(generics.DestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = Product.objects.all()

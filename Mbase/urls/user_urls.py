@@ -4,6 +4,8 @@ from Mbase.views import user_views as views
 
 urlpatterns = [
     path("login/", views.loginUser, name="user-token-obtain-pair"),
+    path("logout/", views.logout, name="logout"),
+    path("change_password/", views.change_password, name="change_password"),
     path(
         "password-reset/confirm/",
         views.confirm_password_reset,
@@ -14,13 +16,13 @@ urlpatterns = [
     path("profile/", views.getUserProfile, name="users-profile"),
     path("list/", views.listUsers, name="user-list"),
     path("create/", views.createUser, name="user-create"),
-    path("<str:pk>/", views.getUserDetails, name="user-details"),
     path("update/<str:pk>/", views.updateUser, name="user-update"),
     path("delete/<str:pk>/", views.deleteUser, name="user-delete"),
-    path("change_password/", views.change_password, name="change_password"),
     path(
         "verify-email/<uidb64>/<token>/",
         views.verify_email,
         name="verify_email",
     ),
+    # keep this at last since it can also match /api/users/list/, /api/users/create/ etc
+    path("<str:pk>/", views.getUserDetails, name="user-details"),
 ]

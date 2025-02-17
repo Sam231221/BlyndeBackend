@@ -20,6 +20,51 @@ class GetOrdersView(APIView):
         return Response(serializer.data)
 
 
+class GetOrderByIdView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        user = request.user
+        try:
+            order = Order.objects.get(_id=pk)
+            if user.is_staff or order.user == user:
+                serializer = OrderSerializer(order, many=False)
+                return Response(serializer.data)
+            else:
+                return Response(
+                    {"detail": "Not authorized to view this order"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Order.DoesNotExist:
+            return Response(
+                {"detail": "Order does not exist"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class GetMyOrdersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        orders = user.order_set.order_by("-_id")
+        # Sorting
+        ordering = request.GET.get("sortBy", None)
+        sort_order = request.GET.get("sortOrder", "asc")  # Default ascending
+
+        if ordering:
+            if sort_order == "desc":
+                ordering = f"-{ordering}"  # Add negative sign for descending
+            orders = orders.order_by(ordering)
+
+        # Pagination
+        paginator = OrderPagination()
+        page = paginator.paginate_queryset(orders, request)
+
+        serializer = OrderSerializer(page, many=True)  # Use your OrderSerializer
+
+        return paginator.get_paginated_response(serializer.data)
+
+
 class AddOrderItemsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -71,52 +116,6 @@ class AddOrderItemsView(APIView):
         return Response(serializer.data)
 
 
-class GetOrderByIdView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        user = request.user
-        try:
-            order = Order.objects.get(_id=pk)
-            if user.is_staff or order.user == user:
-                serializer = OrderSerializer(order, many=False)
-                return Response(serializer.data)
-            else:
-                return Response(
-                    {"detail": "Not authorized to view this order"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        except Order.DoesNotExist:
-            return Response(
-                {"detail": "Order does not exist"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-
-class GetMyOrdersView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        orders = user.order_set.order_by("-_id")
-        # Sorting
-        ordering = request.GET.get("sortBy", None)
-        sort_order = request.GET.get("sortOrder", "asc")  # Default ascending
-        print(ordering, sort_order)
-        if ordering:
-            if sort_order == "desc":
-                ordering = f"-{ordering}"  # Add negative sign for descending
-            orders = orders.order_by(ordering)
-
-        # Pagination
-        paginator = OrderPagination()
-        page = paginator.paginate_queryset(orders, request)
-
-        serializer = OrderSerializer(page, many=True)  # Use your OrderSerializer
-        print(serializer.data)
-        return paginator.get_paginated_response(serializer.data)
-
-
-# prevent race conditions
 class UpdateOrderToPaidView(APIView):
     permission_classes = [IsAuthenticated]
 
