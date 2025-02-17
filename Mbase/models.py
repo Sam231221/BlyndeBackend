@@ -1,10 +1,7 @@
 from django.db import models
-
 from django.contrib.auth.models import AbstractUser
-
 from django.utils.text import slugify
 from django.utils.html import mark_safe
-from django.db import models
 
 
 class User(AbstractUser):
@@ -168,10 +165,6 @@ class Product(models.Model):
         return f"{self.name}"
 
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-
 class DiscountOffers(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=200, null=True, blank=True)
@@ -216,12 +209,6 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Comment on {self.product.name} by {self.name}."
-
-
-@receiver(post_save, sender=Review)
-def update_product_rating(sender, instance, **kwargs):
-    instance.product.update_review_count()
-    instance.product.update_rating()
 
 
 class Order(models.Model):

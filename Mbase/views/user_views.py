@@ -1,24 +1,29 @@
 import logging
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-import base64
-from django.conf import settings
-from datetime import timedelta
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 import re
-from django.utils.encoding import force_bytes, force_str
+import base64
+from datetime import timedelta
+
 from django.db.utils import IntegrityError
 from django.contrib.auth import authenticate
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.sites.shortcuts import get_current_site
 
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import send_mail
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
 
-from django.contrib.auth import get_user_model
 from Mbase.serializers import (
     PasswordChangeSerializer,
     UserSerializer,
@@ -26,98 +31,10 @@ from Mbase.serializers import (
     UserSerializerWithToken,
 )
 from Mbase.mixins.imagekit import imagekit
-from decouple import config
+
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
-FRONTEND_URL = f"http://localhost:5173/request-reset-password/confirm?token="
-
-
-# 1. Request Password Reset
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def request_password_reset(request):
-    email = request.data.get("email")
-    if not email:
-        return Response(
-            {"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    user = User.objects.filter(email=email).first()
-    if user:
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        reset_link = f"{FRONTEND_URL}{uid}-{token}"
-
-        # Send email with reset link
-        send_mail(
-            "Password Reset Request",
-            f"Click the link below to reset your password:\n\n{reset_link}",
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=False,
-        )
-
-    return Response(
-        {"detail": "If the email exists, a reset link has been sent."},
-        status=status.HTTP_200_OK,
-    )
-
-
-# 2. Confirm Password Reset
-@api_view(["POST"])
-def confirm_password_reset(request):
-    token_data = request.data.get("token")
-    new_password = request.data.get("new_password")
-    confirm_password = request.data.get("confirm_password")
-
-    if not token_data or not new_password or not confirm_password:
-        return Response(
-            {"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Extract UID and token
-    match = re.match(r"([^.-]+)-(.+)", token_data)
-    if not match:
-        return Response(
-            {"error": "Invalid token format"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    uid, token = match.groups()
-
-    try:
-        user_id = force_str(urlsafe_base64_decode(uid))
-        user = User.objects.get(pk=user_id)
-    except (User.DoesNotExist, ValueError, TypeError):
-        return Response(
-            {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Validate token
-    if not default_token_generator.check_token(user, token):
-        return Response(
-            {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Password validation
-    if new_password != confirm_password:
-        return Response(
-            {"error": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    if len(new_password) < 8:
-        return Response(
-            {"error": "Password must be at least 8 characters long"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # Save new password
-    user.set_password(new_password)
-    user.save()
-
-    return Response(
-        {"detail": "Password successfully reset"}, status=status.HTTP_200_OK
-    )
 
 
 @api_view(["POST"])
@@ -253,9 +170,6 @@ def registerUser(request):
         )
 
 
-from rest_framework_simplejwt.exceptions import TokenError
-
-
 @api_view(["POST"])
 def logout(request):
     refresh_token = request.data.get("refresh")
@@ -287,6 +201,94 @@ def logout(request):
             },  # Generic message for other errors
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,  # Appropriate status code
         )
+
+
+# 1. Request Password Reset
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def request_password_reset(request):
+    email = request.data.get("email")
+    if not email:
+        return Response(
+            {"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user = User.objects.filter(email=email).first()
+    if user:
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        FRONTEND_URL = get_current_site(request)
+        reset_link = f"{FRONTEND_URL}{uid}-{token}"
+
+        # Send email with reset link
+        send_mail(
+            "Password Reset Request",
+            f"Click the link below to reset your password:\n\n{reset_link}",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+
+    return Response(
+        {"detail": "If the email exists, a reset link has been sent."},
+        status=status.HTTP_200_OK,
+    )
+
+
+# 2. Confirm Password Reset
+@api_view(["POST"])
+def confirm_password_reset(request):
+    token_data = request.data.get("token")
+    new_password = request.data.get("new_password")
+    confirm_password = request.data.get("confirm_password")
+
+    if not token_data or not new_password or not confirm_password:
+        return Response(
+            {"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Extract UID and token
+    match = re.match(r"([^.-]+)-(.+)", token_data)
+    if not match:
+        return Response(
+            {"error": "Invalid token format"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    uid, token = match.groups()
+
+    try:
+        user_id = force_str(urlsafe_base64_decode(uid))
+        user = User.objects.get(pk=user_id)
+    except (User.DoesNotExist, ValueError, TypeError):
+        return Response(
+            {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Validate token
+    if not default_token_generator.check_token(user, token):
+        return Response(
+            {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Password validation
+    if new_password != confirm_password:
+        return Response(
+            {"error": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if len(new_password) < 8:
+        return Response(
+            {"error": "Password must be at least 8 characters long"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Save new password
+    user.set_password(new_password)
+    user.save()
+
+    return Response(
+        {"detail": "Password successfully reset"}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])
@@ -346,11 +348,6 @@ def change_password(request):
                 {"error": "Incorrect old password."}, status=status.HTTP_400_BAD_REQUEST
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import MultiPartParser, FormParser
 
 
 @api_view(["GET", "PUT"])

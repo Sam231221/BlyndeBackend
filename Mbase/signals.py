@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models.signals import pre_save, post_save, pre_delete
 from django.dispatch import receiver
 from django.contrib.auth.tokens import default_token_generator
@@ -5,17 +6,18 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 
-from django.conf import settings
-
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-from decouple import config
-
-current_site = config("SITE_URL")
 
 import imagekitio
-from .models import Genre
+from .models import Genre, Review
+
+
+@receiver(post_save, sender=Review)
+def update_product_rating(sender, instance, **kwargs):
+    instance.product.update_review_count()
+    instance.product.update_rating()
 
 
 @receiver(pre_delete, sender=Genre)
@@ -37,7 +39,9 @@ def send_email_verification(sender, instance, created, **kwargs):
     if created and not instance.email_verified:
         uidb64 = urlsafe_base64_encode(force_bytes(instance.pk))
         token = default_token_generator.make_token(instance)
-        verification_link = f"{current_site}/api/users/verify-email/{uidb64}/{token}/"
+        verification_link = (
+            f"https://blynde.up.railway.app/api/users/verify-email/{uidb64}/{token}/"
+        )
         subject = "Email Verification for Your Account"
         message = f"Please click the link below to verify your email address:\n\n{verification_link}"
         from_email = settings.EMAIL_HOST_USER

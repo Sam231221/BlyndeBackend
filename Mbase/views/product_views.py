@@ -1,14 +1,14 @@
 from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.filters import SearchFilter, OrderingFilter
-from django_filters.rest_framework import DjangoFilterBackend
 
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -22,7 +22,6 @@ from Mbase.models import (
     DiscountOffers,
 )
 from Mbase.serializers import (
-    CategorySerializer,
     CategoryWithChildrenSerializer,
     SizeSerializer,
     DiscountOffersSerializer,

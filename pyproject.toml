@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "djangoproj"
+name = "blynde"
 version = "0.1.0"
 description = ""
 authors = ["Sameer Shahi Thakuri (Sam) <70689865+Sam231221@users.noreply.github.com>"]

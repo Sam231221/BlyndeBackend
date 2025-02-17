@@ -1,8 +1,6 @@
-# forms.py
+from django.contrib.auth.forms import UserChangeForm
 from django import forms
 from .models import Genre, User
-
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
 
 class UserAdminForm(UserChangeForm):
