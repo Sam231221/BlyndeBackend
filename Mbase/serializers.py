@@ -39,25 +39,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "profile_pic",
-        )  # Include all necessary fields
-        extra_kwargs = {"password": {"write_only": True}}  # Make password write-only
+        )
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            **validated_data
-        )  # Use create_user for proper password hashing
+        user = User.objects.create_user(**validated_data)
         return user
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # custom fields to be serialized.
     name = serializers.SerializerMethodField(read_only=True)
     _id = serializers.SerializerMethodField(read_only=True)
     isAdmin = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        # serialize only this field.
         fields = [
             "id",
             "_id",
@@ -70,7 +66,6 @@ class UserSerializer(serializers.ModelSerializer):
             "isAdmin",
         ]
 
-    # obj is User Instance
     def get__id(self, obj):
         return obj.id
 
@@ -101,15 +96,9 @@ class UserSerializerWithToken(UserSerializer):
             "token",
         ]
 
-    # generates token for the user
     def get_token(self, obj):
         token = RefreshToken.for_user(obj)
         return str(token.access_token)
-
-
-from rest_framework import serializers
-from django.db.models import Count
-from .models import Category
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -184,7 +173,7 @@ class ProductSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField(read_only=True)
     colors = ColorSerializer(many=True)
     categories = CategorySerializer(many=True)
-    size = SizeSerializer(many=True)
+    sizes = SizeSerializer(many=True)
     image_albums = serializers.SerializerMethodField()
 
     class Meta:
@@ -200,10 +189,6 @@ class ProductSerializer(serializers.ModelSerializer):
         image_albums = ImageAlbum.objects.filter(product=obj)
         return ImageAlbumSerializer(image_albums, many=True).data
 
-    # def get_colors(self, obj):
-    #     colors = obj.color_set.all()
-    #     return ColorSerializer(colors, many=True).data
-
 
 class ProductCreateUpdateSerializer(serializers.ModelSerializer):
 
@@ -213,7 +198,7 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             "name",
             "thumbnail",
             "brand",
-            "size",
+            "sizes",
             "colors",
             "categories",
             "description",
@@ -230,9 +215,10 @@ class ImageAlbumSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Review
-        fields = ["product", "user", "name", "createdAt", "rating", "comment"]
+        fields = ["product", "user", "createdAt", "rating", "comment"]
 
 
 class ShippingAddressSerializer(serializers.ModelSerializer):
@@ -248,7 +234,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    # custom ones
     orderItems = serializers.SerializerMethodField(read_only=True)
     shippingAddress = serializers.SerializerMethodField(read_only=True)
     user = serializers.SerializerMethodField(read_only=True)

@@ -24,5 +24,5 @@ urlpatterns = [
         name="verify_email",
     ),
     # keep this at last since it can also match /api/users/list/, /api/users/create/ etc
-    path("<str:pk>/", views.getUserDetails, name="user-details"),
+    path("<str:first_name>/", views.getUserDetails, name="user-details"),
 ]

@@ -23,10 +23,10 @@ class GetOrdersView(APIView):
 class GetOrderByIdView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
+    def get(self, request, order_number):
         user = request.user
         try:
-            order = Order.objects.get(_id=pk)
+            order = Order.objects.get(order_number=order_number)
             if user.is_staff or order.user == user:
                 serializer = OrderSerializer(order, many=False)
                 return Response(serializer.data)

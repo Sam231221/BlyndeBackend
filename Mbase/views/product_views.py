@@ -4,7 +4,11 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+    IsAdminUser,
+)
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -98,7 +102,7 @@ class ProductsView(generics.ListAPIView):
             Product.objects.filter(name__icontains=query)
             .order_by("-createdAt")
             .prefetch_related(
-                "reviews", "colors", "categories", "size", "imagealbum_set"
+                "reviews", "colors", "categories", "sizes", "imagealbum_set"
             )
         )
 
@@ -111,7 +115,7 @@ class TopProductsView(generics.ListAPIView):
             Product.objects.filter(rating__gte=5)
             .order_by("-rating")[:5]
             .prefetch_related(
-                "reviews", "colors", "categories", "size", "imagealbum_set"
+                "reviews", "colors", "categories", "sizes", "imagealbum_set"
             )
         )
 
@@ -122,7 +126,7 @@ class DealProductsView(generics.ListAPIView):
     def get_queryset(self):
         category_obj = Category.objects.filter(name__icontains="deals").first()
         return Product.objects.filter(categories=category_obj)[:6].prefetch_related(
-            "reviews", "colors", "categories", "size", "imagealbum_set"
+            "reviews", "colors", "categories", "sizes", "imagealbum_set"
         )
 
 
@@ -130,16 +134,13 @@ class RelatedProductsAPIView(generics.ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        product_id = self.kwargs["product_id"]
-        product = Product.objects.get(_id=product_id)
-
-        # Logic to determine related products (customize based on your needs)
+        product_slug = self.kwargs["product_slug"]
+        product = Product.objects.get(slug=product_slug)
         related_products = Product.objects.filter(
-            # Consider these factors (modify based on your priorities):
             Q(categories__in=product.categories.all())
             | Q(colors__in=product.colors.all()),
             Q(brand=product.brand),
-        ).exclude(_id=product_id)
+        ).exclude(slug=product_slug)
 
         return related_products.distinct()
 
@@ -179,7 +180,7 @@ class FeaturedProductsView(generics.ListAPIView):
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.prefetch_related(
         "colors",
-        "size",
+        "sizes",
         "categories",
     )
     serializer_class = ProductSerializer
@@ -193,7 +194,7 @@ class ProductListView(generics.ListAPIView):
 class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
-    lookup_field = "pk"
+    lookup_field = "slug"
 
 
 class CreateProductView(generics.CreateAPIView):
@@ -205,16 +206,18 @@ class UpdateProductView(generics.UpdateAPIView):
     serializer_class = ProductCreateUpdateSerializer
     permission_classes = [IsAdminUser]
     queryset = Product.objects.all()
-    lookup_field = "pk"
+    lookup_field = "slug"
 
 
 class DeleteProductView(generics.DestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = Product.objects.all()
-    lookup_field = "pk"
+    lookup_field = "slug"
+    """
+    Default response is 204 content
+    So overriding delete() to show custom response
+    """
 
-    # default response is 204 content
-    # so overriding delete() to show custom response
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
@@ -228,13 +231,51 @@ class ProductReviewListView(generics.ListAPIView):
     serializer_class = ReviewSerializer
 
     def get_queryset(self):
-        product_id = self.kwargs.get("product_id")
-        return Review.objects.filter(product___id=product_id)
+        product_slug = self.kwargs.get("product_slug")
+        return Review.objects.filter(product__slug=product_slug)
 
 
 class ReviewListCreateView(generics.ListCreateAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(
+            data=request.data
+        )  # Use serializer for validation
+        print("fk:", serializer)
+        if serializer.is_valid():
+            try:
+
+                product = serializer.validated_data.get("product")
+                print(product)
+                user = request.user
+                review = Review.objects.create(
+                    user=user,
+                    product=product,
+                    rating=serializer.validated_data.get("rating"),
+                    comment=serializer.validated_data.get("comment"),
+                )
+
+                product.update_review_count()
+                product.update_rating()
+
+                return Response(
+                    ReviewSerializer(review).data, status=status.HTTP_201_CREATED
+                )
+
+            except Exception as e:  # Catch specific exceptions if possible
+                print(f"\n \nError creating review: {e}")  # Better logging
+                return Response(
+                    {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
+                )  # More informative error
+
+        else:
+            print(serializer.errors)  # Print serializer errors for debugging
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )  # Return serializer errors
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):

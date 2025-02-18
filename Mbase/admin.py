@@ -90,36 +90,10 @@ class BlyndeUserAdmin(UserAdmin, ImageKitMixin):
         super().save_model(request, obj, form, change)
 
 
-@admin.register(Genre)
-class GenreAdmin(admin.ModelAdmin, ImageKitMixin):
-    form = GenreAdminForm
-    list_display = ("name", "image_preview")
-    readonly_fields = ("image_preview",)
-    fields = ("name", "image_preview", "image", "remove_image")
-
-    def save_model(self, request, obj, form, change):
-        if form.cleaned_data.get("remove_image"):
-            if obj.image_file_id:
-                self._delete_imagekit_file(obj.image_file_id)
-                obj.image_file_id = ""
-                obj.image_url = ""
-
-        new_image = form.cleaned_data.get("image")
-        if new_image:
-            if change and obj.image_file_id:
-                self._delete_imagekit_file(obj.image_file_id)
-
-            upload_response = self._upload_to_imagekit(new_image, "/Blynde/Genres/")
-            obj.image_file_id = upload_response.file_id
-            obj.image_url = upload_response.url
-
-        super().save_model(request, obj, form, change)
-
-
 @admin.register(ImageAlbum)
 class ImageAlbumAdmin(admin.ModelAdmin, ImageKitMixin):
     form = ImageAlbumAdminForm
-    list_display = ("image_preview", "product")
+    list_display = ("id", "image_preview", "product")
     readonly_fields = ("image_preview",)
     fields = ("image_preview", "image", "remove_image", "product")
 
@@ -135,7 +109,9 @@ class ImageAlbumAdmin(admin.ModelAdmin, ImageKitMixin):
             if change and obj.image_file_id:
                 self._delete_imagekit_file(obj.image_file_id)
 
-            upload_response = self._upload_to_imagekit(new_image, "/Blynde/Products/")
+            upload_response = self._upload_to_imagekit(
+                new_image, f"/Blynde/Products/Pd-{obj.product._id}/ImageAlbums/"
+            )
             obj.image_file_id = upload_response.file_id
             obj.image_url = upload_response.url
 
@@ -175,7 +151,7 @@ class ProductAdmin(admin.ModelAdmin, ImageKitMixin):
                     "brand",
                     "categories",
                     "colors",
-                    "size",
+                    "sizes",
                     "badge",
                 )
             },
@@ -186,7 +162,6 @@ class ProductAdmin(admin.ModelAdmin, ImageKitMixin):
     list_editable = ["price"]
 
     def save_model(self, request, obj, form, change):
-        print("a:asasa:", obj._id)
         if form.cleaned_data.get("remove_thumbnail"):
             if obj.thumbnail_file_id:
                 self._delete_imagekit_file(obj.thumbnail_file_id)
@@ -197,7 +172,7 @@ class ProductAdmin(admin.ModelAdmin, ImageKitMixin):
             if change and obj.thumbnail_file_id:
                 self._delete_imagekit_file(obj.thumbnail_file_id)
             upload_response = self._upload_to_imagekit(
-                new_image, f"/Blynde/Products/{obj._id}/"
+                new_image, f"/Blynde/Products/Pd-{obj._id}/"
             )
             obj.thumbnail_file_id = upload_response.file_id
             obj.thumbnail_url = upload_response.url
@@ -215,3 +190,29 @@ class ReviewAdmin(admin.ModelAdmin):
     )
     list_filter = ("rating",)
     search_fields = ("product__name", "user__username")
+
+
+@admin.register(Genre)
+class GenreAdmin(admin.ModelAdmin, ImageKitMixin):
+    form = GenreAdminForm
+    list_display = ("name", "image_preview")
+    readonly_fields = ("image_preview",)
+    fields = ("name", "image_preview", "image", "remove_image")
+
+    def save_model(self, request, obj, form, change):
+        if form.cleaned_data.get("remove_image"):
+            if obj.image_file_id:
+                self._delete_imagekit_file(obj.image_file_id)
+                obj.image_file_id = ""
+                obj.image_url = ""
+
+        new_image = form.cleaned_data.get("image")
+        if new_image:
+            if change and obj.image_file_id:
+                self._delete_imagekit_file(obj.image_file_id)
+
+            upload_response = self._upload_to_imagekit(new_image, "/Blynde/Genres/")
+            obj.image_file_id = upload_response.file_id
+            obj.image_url = upload_response.url
+
+        super().save_model(request, obj, form, change)

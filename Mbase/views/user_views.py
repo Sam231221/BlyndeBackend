@@ -59,7 +59,7 @@ def loginUser(request):
         user = authenticate(request, username=email, password=password)
 
         if user:
-            if not user.email_verified:  # Check if the user is active
+            if not user.email_verified:
                 return Response(
                     {"errors": {"general": "User account is verified yet."}},
                     status=status.HTTP_401_UNAUTHORIZED,
@@ -67,7 +67,7 @@ def loginUser(request):
 
             refresh = RefreshToken.for_user(user)
             if remember_me:
-                # Set longer expiry time for refresh token
+
                 refresh.set_exp(lifetime=timedelta(days=3))
             return Response(
                 {
@@ -79,13 +79,12 @@ def loginUser(request):
                     "last_name": user.last_name,
                     "refresh": str(refresh),
                     "email_verified": user.email_verified,
-                    # access
                     "token": str(refresh.access_token),
                 },
                 status=status.HTTP_200_OK,
             )
 
-        else:  # Authentication failed
+        else:
             return Response(
                 {"errors": {"general": "Invalid credentials"}},
                 status=status.HTTP_401_UNAUTHORIZED,
@@ -96,7 +95,6 @@ def loginUser(request):
 def registerUser(request):
     data = request.data
 
-    # Validate Emtyness
     required_fields = [
         "username",
         "firstName",
@@ -106,7 +104,6 @@ def registerUser(request):
         "confirmPassword",
         "agreeToTerms",
     ]
-    # Validate required fields
     missing_fields = [field for field in required_fields if not data.get(field)]
     if missing_fields:
         return Response(
@@ -114,42 +111,41 @@ def registerUser(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Validate agreeToTerms
     if not data.get("agreeToTerms"):
         return Response(
             {"errors": {"agreeToTerms": "You must agree to the terms and conditions"}},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    # Validate password length
+
     if len(data["password"]) < 8:
         return Response(
             {"errors": {"password": "Password must be at least 8 characters long"}},
             status=status.HTTP_400_BAD_REQUEST,
         )
-        # Validate password match
+
     if data["password"] != data["confirmPassword"]:
         return Response(
             {"errors": {"confirmPassword": "Passwords do not match"}},
             status=status.HTTP_400_BAD_REQUEST,
         )
     try:
-        # Check if email already exists
+
         if User.objects.filter(email=data["email"]).exists():
             return Response(
                 {"detail": "User with this email already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        # Create user
+
         user = User(
             username=data["username"],
             first_name=data["firstName"],
             last_name=data["lastName"],
             email=data["email"],
         )
-        user.set_password(data["password"])  # Proper way to hash password
+        user.set_password(data["password"])
         user.agreed_to_terms = True
         user.save()
-        # Serialize user data with token
+
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -181,29 +177,24 @@ def logout(request):
         )
 
     try:
-        token = RefreshToken(refresh_token)  # This can raise TokenError
+        token = RefreshToken(refresh_token)
         token.blacklist()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    except TokenError as e:  # Catch the specific TokenError
-        logger.error(f"TokenError: {e}")  # Print the error for debugging.
+    except TokenError as e:
+        logger.error(f"TokenError: {e}")
         return Response(
-            {"error": "Invalid or expired refresh token"},  # More accurate message
+            {"error": "Invalid or expired refresh token"},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    except Exception as e:  # This is for other exceptions that may occur.
-        logger.exception(
-            "An unexpected error occurred during logout"
-        )  # Print the error for debugging.
+    except Exception as e:
+        logger.exception("An unexpected error occurred during logout")
         return Response(
-            {
-                "error": "An unexpected error occurred"
-            },  # Generic message for other errors
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,  # Appropriate status code
+            {"error": "An unexpected error occurred"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-# 1. Request Password Reset
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def request_password_reset(request):
@@ -220,7 +211,6 @@ def request_password_reset(request):
         FRONTEND_URL = get_current_site(request)
         reset_link = f"{FRONTEND_URL}{uid}-{token}"
 
-        # Send email with reset link
         send_mail(
             "Password Reset Request",
             f"Click the link below to reset your password:\n\n{reset_link}",
@@ -235,7 +225,6 @@ def request_password_reset(request):
     )
 
 
-# 2. Confirm Password Reset
 @api_view(["POST"])
 def confirm_password_reset(request):
     token_data = request.data.get("token")
@@ -247,7 +236,6 @@ def confirm_password_reset(request):
             {"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Extract UID and token
     match = re.match(r"([^.-]+)-(.+)", token_data)
     if not match:
         return Response(
@@ -264,13 +252,11 @@ def confirm_password_reset(request):
             {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Validate token
     if not default_token_generator.check_token(user, token):
         return Response(
             {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Password validation
     if new_password != confirm_password:
         return Response(
             {"error": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST
@@ -282,7 +268,6 @@ def confirm_password_reset(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Save new password
     user.set_password(new_password)
     user.save()
 
@@ -294,11 +279,10 @@ def confirm_password_reset(request):
 @api_view(["GET"])
 def verify_email(request, uidb64, token):
     try:
-        # Decode the user ID
+
         uid = urlsafe_base64_decode(uidb64).decode()
         user = User.objects.get(pk=uid)
 
-        # Verify the token
         if default_token_generator.check_token(user, token):
             if user.email_verified:
                 return Response(
@@ -326,7 +310,6 @@ def verify_email(request, uidb64, token):
         )
 
 
-# Change Password
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def change_password(request):
@@ -337,9 +320,7 @@ def change_password(request):
             if user.check_password(serializer.data.get("old_password")):
                 user.set_password(serializer.data.get("new_password"))
                 user.save()
-                update_session_auth_hash(
-                    request, user
-                )  # To update session after password change
+                update_session_auth_hash(request, user)
                 return Response(
                     {"message": "Password changed successfully."},
                     status=status.HTTP_200_OK,
@@ -357,44 +338,33 @@ def getUserProfile(request):
     user = request.user
 
     if request.method == "GET":
-        # Get user profile data
         serializer = UserSerializer(user, many=False)
         return Response(serializer.data)
 
     elif request.method == "PUT":
-        # Update user profile data
         data = request.data
 
-        # Update user fields
         user.first_name = data.get("first_name", user.first_name)
         user.last_name = data.get("last_name", user.last_name)
         user.email = data.get("email", user.email)
 
         avatar_file = request.FILES.get("avatarU")
-        # Handle avatar file upload to ImageKit
+
         if avatar_file:
             if user.profile_pic_id:
-                # Delete the existing avatar from ImageKit
                 imagekit.delete_file(user.profile_pic_id)
-            # Upload the avatar to ImageKit
             upload_response = imagekit.upload_file(
-                file=base64.b64encode(avatar_file.read()).decode(
-                    "utf-8"
-                ),  # Pass the binary data
-                file_name=f"avataR- {avatar_file.name}",  # Use a unique file name
+                file=base64.b64encode(avatar_file.read()).decode("utf-8"),
+                file_name=f"avataR- {avatar_file.name}",
                 options=UploadFileRequestOptions(
                     use_unique_file_name=False,
                     folder="/Blynde/Users/",
                 ),
             )
-
-            # Save the ImageKit file ID and URL to the user model
             user.profile_pic_id = upload_response.file_id
             user.profile_pic_url = upload_response.url
         user.save()
-        # Save the updated user object
 
-        # Return the updated user data
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

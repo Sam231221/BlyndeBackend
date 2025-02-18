@@ -1,6 +1,5 @@
-from django_filters import rest_framework as filters
 import django_filters
-from .models import Product, Category, Color, Size
+from .models import Product, Category
 
 
 class ProductFilter(django_filters.FilterSet):
@@ -15,7 +14,7 @@ class ProductFilter(django_filters.FilterSet):
     max_price = django_filters.NumberFilter(field_name="price", lookup_expr="lte")
 
     sizes = django_filters.CharFilter(
-        method="filter_by_size_names", label="Filter by size names (comma-separated)"
+        method="filter_by_size_names", label="Filter by sizes names (comma-separated)"
     )
 
     class Meta:
