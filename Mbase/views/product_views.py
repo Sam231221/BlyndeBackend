@@ -241,15 +241,11 @@ class ReviewListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
-            data=request.data
-        )  # Use serializer for validation
-        print("fk:", serializer)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             try:
-
                 product = serializer.validated_data.get("product")
-                print(product)
+
                 user = request.user
                 review = Review.objects.create(
                     user=user,
@@ -265,17 +261,13 @@ class ReviewListCreateView(generics.ListCreateAPIView):
                     ReviewSerializer(review).data, status=status.HTTP_201_CREATED
                 )
 
-            except Exception as e:  # Catch specific exceptions if possible
-                print(f"\n \nError creating review: {e}")  # Better logging
-                return Response(
-                    {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
-                )  # More informative error
+            except Exception as e:
+
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         else:
             print(serializer.errors)  # Print serializer errors for debugging
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )  # Return serializer errors
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):

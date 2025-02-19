@@ -121,13 +121,10 @@ class UpdateOrderToPaidView(APIView):
 
     def put(self, request, order_number):
         try:
-            with transaction.atomic():  # Use atomic transaction for database integrity
-                # Use select_for_update() to lock the order row for exclusive access
+            with transaction.atomic():
                 order = Order.objects.select_for_update().get(order_number=order_number)
-                print("Order:", order, "Order number:", order_number)
-                if (
-                    not order.isPaid
-                ):  # Only update if not already paid. Prevents multiple updates
+
+                if not order.isPaid:
                     order.status = "Paid"
                     order.isPaid = True
                     order.paidAt = timezone.now()
@@ -146,7 +143,7 @@ class UpdateOrderToPaidView(APIView):
             return Response(
                 {"detail": "Order does not exist"}, status=status.HTTP_400_BAD_REQUEST
             )
-        except Exception as e:  # Catch any other potential exceptions
+        except Exception as e:
             return Response(
                 {"detail": f"An error occurred: {e}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
