@@ -5,15 +5,19 @@ urlpatterns = [
     path("add/", views.AddOrderItemsView.as_view(), name="order-add"),
     path("myorders/", views.GetMyOrdersView.as_view(), name="get-my-orders"),
     path(
-        "<str:order_number>/",
-        views.GetOrderByIdView.as_view(),
-        name="get-order-by-number",
-    ),
-    path(
-        "<str:pk>/deliver/",
+        "<str:order_number>/deliver/",
         views.UpdateOrderToDeliveredView.as_view(),
         name="order-deliver",
     ),
-    path("<str:pk>/pay/", views.UpdateOrderToPaidView.as_view(), name="order-pay"),
-    path("", views.GetOrdersView.as_view(), name="order-list"),
+    path(
+        "<str:order_number>/pay/",
+        views.UpdateOrderToPaidView.as_view(),
+        name="order-pay",
+    ),
+    path("list/", views.GetOrdersView.as_view(), name="order-list"),
+    path(
+        "<str:order_number>/",
+        views.GetOrderByOrderNumberView.as_view(),
+        name="get-order-by-number",
+    ),
 ]

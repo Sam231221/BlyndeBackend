@@ -245,6 +245,7 @@ class Order(models.Model):
         max_length=20,
         choices=[
             ("Pending", "Pending"),
+            ("Paid", "Paid"),
             ("Shipped", "Shipped"),
             ("Delivered", "Delivered"),
         ],

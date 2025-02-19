@@ -77,9 +77,9 @@ def loginUser(request):
                     "profile_pic_url": user.profile_pic_url,
                     "first_name": user.first_name,
                     "last_name": user.last_name,
-                    "refresh": str(refresh),
+                    "refresh_token": str(refresh),
                     "email_verified": user.email_verified,
-                    "token": str(refresh.access_token),
+                    "access_token": str(refresh.access_token),
                 },
                 status=status.HTTP_200_OK,
             )
@@ -209,7 +209,9 @@ def request_password_reset(request):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         FRONTEND_URL = get_current_site(request)
-        reset_link = f"{FRONTEND_URL}{uid}-{token}"
+        reset_link = (
+            f"{FRONTEND_URL}/request-reset-password/confirm?token={uid}-{token}"
+        )
 
         send_mail(
             "Password Reset Request",

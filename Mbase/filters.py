@@ -14,7 +14,7 @@ class ProductFilter(django_filters.FilterSet):
     max_price = django_filters.NumberFilter(field_name="price", lookup_expr="lte")
 
     sizes = django_filters.CharFilter(
-        method="filter_by_size_names", label="Filter by sizes names (comma-separated)"
+        method="filter_by_sizes_names", label="Filter by sizes names (comma-separated)"
     )
 
     class Meta:
@@ -35,8 +35,8 @@ class ProductFilter(django_filters.FilterSet):
 
         return queryset.filter(categories__slug__in=valid_slugs).distinct()
 
-    def filter_by_size_names(self, queryset, name, value):
-        size_names = [name.strip().lower() for name in value.split(",")]
+    def filter_by_sizes_names(self, queryset, name, value):
+        sizes_names = [name.strip().lower() for name in value.split(",")]
         return queryset.filter(
-            size__name__iregex=r"(" + "|".join(size_names) + ")"
+            sizes__name__iregex=r"(" + "|".join(sizes_names) + ")"
         ).distinct()

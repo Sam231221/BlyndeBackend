@@ -11,7 +11,9 @@ urlpatterns = [
         views.confirm_password_reset,
         name="password_reset_confirm",
     ),
-    path("password-reset/", views.request_password_reset, name="password_reset"),
+    path(
+        "password-reset-request/", views.request_password_reset, name="password_reset"
+    ),
     path("register/", views.registerUser, name="user-register"),
     path("profile/", views.getUserProfile, name="users-profile"),
     path("list/", views.listUsers, name="user-list"),

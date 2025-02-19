@@ -20,7 +20,7 @@ class GetOrdersView(APIView):
         return Response(serializer.data)
 
 
-class GetOrderByIdView(APIView):
+class GetOrderByOrderNumberView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, order_number):
@@ -107,7 +107,7 @@ class AddOrderItemsView(APIView):
                 size=item_data["size"],
                 qty=int(item_data["qty"]),
                 price=item_data["price"],
-                thumbnail=product.thumbnail.url,
+                thumbnail=product.thumbnail_url,
             )
             product.countInStock -= order_item.qty
             product.save()
@@ -119,15 +119,16 @@ class AddOrderItemsView(APIView):
 class UpdateOrderToPaidView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def put(self, request, pk):
+    def put(self, request, order_number):
         try:
             with transaction.atomic():  # Use atomic transaction for database integrity
                 # Use select_for_update() to lock the order row for exclusive access
-                order = Order.objects.select_for_update().get(_id=pk)
-
+                order = Order.objects.select_for_update().get(order_number=order_number)
+                print("Order:", order, "Order number:", order_number)
                 if (
                     not order.isPaid
                 ):  # Only update if not already paid. Prevents multiple updates
+                    order.status = "Paid"
                     order.isPaid = True
                     order.paidAt = timezone.now()
                     order.save()
@@ -155,9 +156,9 @@ class UpdateOrderToPaidView(APIView):
 class UpdateOrderToDeliveredView(APIView):
     permission_classes = [IsAdminUser]
 
-    def put(self, request, pk):
+    def put(self, request, order_number):
         try:
-            order = Order.objects.get(_id=pk)
+            order = Order.objects.get(order_number=order_number)
             order.isDelivered = True
             order.deliveredAt = datetime.now()
             order.save()
