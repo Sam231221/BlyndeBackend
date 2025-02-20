@@ -5,7 +5,6 @@ from datetime import timedelta
 
 from django.db.utils import IntegrityError
 from django.contrib.auth import authenticate
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
@@ -15,17 +14,16 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+from rest_framework.exceptions import AuthenticationFailed
 
 from Mbase.serializers import (
-    PasswordChangeSerializer,
     UserSerializer,
     UserCreateSerializer,
     UserSerializerWithToken,
@@ -313,24 +311,32 @@ def verify_email(request, uidb64, token):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def change_password(request):
-    if request.method == "POST":
-        serializer = PasswordChangeSerializer(data=request.data)
-        if serializer.is_valid():
-            user = request.user
-            if user.check_password(serializer.data.get("old_password")):
-                user.set_password(serializer.data.get("new_password"))
-                user.save()
-                update_session_auth_hash(request, user)
-                return Response(
-                    {"message": "Password changed successfully."},
-                    status=status.HTTP_200_OK,
-                )
-            return Response(
-                {"error": "Incorrect old password."}, status=status.HTTP_400_BAD_REQUEST
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@permission_classes([AllowAny])
+def refresh_token_view(request):
+    refresh_token = request.data.get("refresh")
+    if not refresh_token:
+        return Response(
+            {"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        refresh = RefreshToken(refresh_token)
+        if hasattr(refresh, "blacklist"):
+            refresh.blacklist()
+
+        # Create a new refresh token (if rotation is enabled)
+        new_refresh = RefreshToken.for_user(refresh.user)
+
+        return Response(
+            {
+                "access": str(new_refresh.access_token),
+                "refresh": str(new_refresh),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except Exception as e:
+        raise AuthenticationFailed("Invalid or expired refresh token")
 
 
 @api_view(["GET", "PUT"])

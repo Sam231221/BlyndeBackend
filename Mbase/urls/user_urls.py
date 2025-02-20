@@ -5,7 +5,7 @@ from Mbase.views import user_views as views
 urlpatterns = [
     path("login/", views.loginUser, name="user-token-obtain-pair"),
     path("logout/", views.logout, name="logout"),
-    path("change_password/", views.change_password, name="change_password"),
+    path("api/token/refresh/", views.refresh_token_view, name="token_refresh"),
     path(
         "password-reset/confirm/",
         views.confirm_password_reset,
