@@ -215,6 +215,7 @@ class ImageAlbumSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False)
 
     class Meta:
         model = Review
