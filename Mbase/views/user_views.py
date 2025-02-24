@@ -13,7 +13,7 @@ from django.contrib.sites.shortcuts import get_current_site
 
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes, parser_classes
@@ -205,35 +205,53 @@ def request_password_reset(request):
         )
     user = User.objects.filter(email=email).first()
     if user:
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        FRONTEND_URL = get_current_site(request)
-        reset_link = (
-            f"{FRONTEND_URL}/request-reset-password/confirm?token={uid}-{token}"
-        )
-        subject = "Password Reset Request"
-        heading = "Password Reset Request"
-        message = f"We have received a request to reset your password. Please click on the link below to reset your password. If you didn’t request this, you can ignore this email."
-        from_email = settings.EMAIL_HOST_USER
-        recipient_list = [user.email]
-        html_content = render_to_string(
-            "email/template1.html",
-            {
-                "subject": subject,
-                "heading": heading,
-                "recipient_name": user.first_name,
-                "message_content": message,
-                "cta_button": True,
-                "cta_url": reset_link,
-                "cta_text": "Reset Password",
-                "sender_name": from_email,
-            },
-        )
-        email = EmailMessage(subject, html_content, from_email, recipient_list)
-        print(recipient_list, from_email)
-        email.content_subtype = "html"
         try:
-            email.send()
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            reset_link = f"{settings.FRONTEND_BASE_URL}/request-reset-password/confirm?token={uid}-{token}"
+
+            subject = "Password Reset Request"
+            heading = "Password Reset Request"
+            message = f"We have received a request to reset your password. Please click on the link below to reset your password. If you didn’t request this, you can ignore this email."
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = [user.email]
+            html_content = render_to_string(
+                "email/template1.html",
+                {
+                    "subject": subject,
+                    "heading": heading,
+                    "recipient_name": user.first_name,
+                    "message_content": message,
+                    "cta_button": True,
+                    "cta_url": reset_link,
+                    "cta_text": "Reset Password",
+                    "sender_name": from_email,
+                },
+            )
+            text_content = render_to_string(
+                "email/template1.html",
+                {
+                    "subject": subject,
+                    "heading": heading,
+                    "recipient_name": user.first_name,
+                    "message_content": message,
+                    "cta_button": True,
+                    "cta_url": reset_link,
+                    "cta_text": "Reset Password",
+                    "sender_name": from_email,
+                },
+            )
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=f"<{settings.EMAIL_HOST_USER}>",
+                to=recipient_list,
+            )
+            email.attach_alternative(html_content, "text/html")
+
+            # Send email
+            email.send(fail_silently=False)
+
             logger.info("Password reset email sent successfully to %s", user.email)
         except Exception as e:
 

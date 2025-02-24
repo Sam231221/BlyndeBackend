@@ -7,6 +7,8 @@ SITE_ID = 2
 ALLOWED_HOSTS = [
     "blynde.up.railway.app",
 ]
+DJANGO_BASE_URL = config("DJANGO_BASE_URL")
+FRONTEND_BASE_URL = config("FRONTEND_BASE_URL")
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.cache.UpdateCacheMiddleware",

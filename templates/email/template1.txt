@@ -1,0 +1,17 @@
+{{subject}}
+
+Dear {{recipient_name}},
+
+{{message_content}}
+
+{% if cta_button %}
+Click here: {{cta_url}} ({{cta_text}})
+{% endif %}
+
+Best regards,
+{{sender_name}}
+Blynde
+
+© 2025 Blynde Pvt Ltd. All rights reserved.
+Pokhara, Nepal
+

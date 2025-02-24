@@ -266,7 +266,6 @@ class ReviewListCreateView(generics.ListCreateAPIView):
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         else:
-            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

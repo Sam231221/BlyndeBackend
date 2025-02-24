@@ -25,7 +25,7 @@ EXPLICT_APPS = [
     "django_filters",
     "corsheaders",
     "whitenoise",
-    "Mbase.apps.MbaseConfig",  # Ensure Mbase is included here
+    "Mbase.apps.MbaseConfig",
 ]
 
 INSTALLED_APPS = DEFAULT_APPS + EXPLICT_APPS

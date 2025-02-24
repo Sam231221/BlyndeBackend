@@ -1,5 +1,5 @@
 from Blynde.base import *
-
+from decouple import config
 
 DEBUG = True
 
@@ -7,6 +7,8 @@ SITE_ID = 1
 
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+DJANGO_BASE_URL = config("DJANGO_BASE_URL")
+FRONTEND_BASE_URL = config("FRONTEND_BASE_URL")
 
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
