@@ -5,6 +5,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
 
 from django.contrib.auth import get_user_model
 
@@ -43,21 +45,50 @@ def send_email_verification(sender, instance, created, **kwargs):
             f"https://blynde.up.railway.app/api/users/verify-email/{uidb64}/{token}/"
         )
         subject = "Email Verification for Your Account"
+        heading = "Welcome to Our Store."
         message = f"Please click the link below to verify your email address:\n\n{verification_link}"
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [instance.email]
-        print("Verification Link:", verification_link)
-        send_mail(subject, message, from_email, recipient_list)
+        html_content = render_to_string(
+            "email/template1.html",
+            {
+                "subject": subject,
+                "heading": heading,
+                "recipient_name": instance.first_name,
+                "message_content": message,
+                "cta_button": True,
+                "cta_url": verification_link,
+                "cta_text": "Verify Email",
+                "sender_name": from_email,
+            },
+        )
+        email = EmailMessage(subject, html_content, from_email, recipient_list)
+        email.content_subtype = "html"
+        email.send()
 
 
 @receiver(post_save, sender=User)
 def send_welcome_email(sender, instance, created, **kwargs):
     if created and instance.email_verified:
-        subject = "Welcome to Our Website"
+        subject = "Greetings"
+        heading = "Welcome to Our Website"
         message = f"Hello {instance.email},\n\nWelcome to our website! Thank you for joining us."
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [instance.email]
-        send_mail(subject, message, from_email, recipient_list)
+
+        html_content = render_to_string(
+            "email/template1.html",
+            {
+                "subject": subject,
+                "heading": heading,
+                "recipient_name": instance.first_name,
+                "message_content": message,
+                "sender_name": from_email,
+            },
+        )
+        email = EmailMessage(subject, html_content, from_email, recipient_list)
+        email.content_subtype = "html"
+        email.send()
 
 
 def updateUser(sender, instance, **kwargs):

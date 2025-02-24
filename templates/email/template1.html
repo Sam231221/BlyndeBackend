@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{subject}}</title>
+    <style>
+      .button-hover:hover {
+        background-color: #0056b3 !important;
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+      }
+    </style>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+      background-color: #f8f9fa;
+      font-weight: 400;
+    "
+  >
+    <!-- Main Container -->
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff">
+      <!-- Header with Logo -->
+      <div
+        style="
+          padding: 20px 0;
+
+          position: relative;
+          margin: 0 auto;
+          text-align: center;
+          background-color: #f8f9fa;
+        "
+      >
+        <img
+          src="https://res.cloudinary.com/dcgrv6shk/image/upload/v1740330428/imvg1_pxpdbj.png"
+          alt="Blynde"
+          style="max-width: 200px; height: auto"
+        />
+      </div>
+
+      <!-- Content Section -->
+      <div style="padding: 20px 40px">
+        <h1 style="font-size: 24px; color: #333333; font-weight: 600">
+          {{heading}}
+        </h1>
+
+        <div style="font-size: 13px; font-weight: 600">
+          Dear {{recipient_name}},
+        </div>
+
+        <div style="font-size: 13px; font-weight: 600">{{message_content}}</div>
+        {% if cta_button %}
+        <div style="margin: 25px 0; text-align: center">
+          <a
+            class="button-hover"
+            href="{{cta_url}}"
+            style="
+              display: inline-block;
+              padding: 6px 19px;
+              background-color: #007bff;
+              font-size: 13px;
+              color: #ffffff;
+              text-decoration: none;
+              border-radius: 4px;
+              font-weight: 600;
+            "
+            >{{cta_text}}</a
+          >
+        </div>
+        {% endif %}
+
+        <div style="margin: 25px 0 0 0; font-weight: 600">
+          Best regards,<br />
+          <span style="font-size: 13px; font-weight: 600">{{sender_name}}</span
+          ><br />
+          <span style="font-size: 13px; font-weight: 600">Blynde</span>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding: 20px; text-align: center; background-color: #f8f9fa">
+        <div style="font-size: 12px; color: #6c757d; font-weight: 500">
+          © 2025 Blynde. All rights reserved.<br />
+          Pokhara,Nepal
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -3,16 +3,16 @@
     "model": "sites.site",
     "pk": 1,
     "fields": {
-      "domain": "http://127.0.0.1:8000",
-      "name": "127.0.0.1:8000"
+      "domain": "http://localhost:5173",
+      "name": "http://localhost:5173"
     }
   },
   {
     "model": "sites.site",
     "pk": 2,
     "fields": {
-      "domain": "https://blynde.up.railway.app",
-      "name": "blynde.up.railway.app"
+      "domain": "https://blynde.netlify.app",
+      "name": "blynde.netlify.app"
     }
   },
   {
@@ -20,7 +20,7 @@
     "pk": 1,
     "fields": {
       "password": "pbkdf2_sha256$870000$TT6Rwyl2GOgi3Pp3YmJLYZ$4OS6vhw+O4xVyqPA+MULVVRnatjEjyPsJ2r0T5TQVlM=",
-      "last_login": "2025-01-29T17:25:33Z",
+      "last_login": "2025-02-18T14:04:38Z",
       "is_superuser": true,
       "username": "samirshahi9882@gmail.com",
       "first_name": "Sameer",
@@ -32,50 +32,6 @@
       "profile_pic_id": "67b2ce01432c4764165ff77e",
       "email_verified": true,
       "profile_pic_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Users/avataR-_portfoliome.webp",
-      "agreed_to_terms": false,
-      "groups": [],
-      "user_permissions": []
-    }
-  },
-  {
-    "model": "Mbase.user",
-    "pk": 3,
-    "fields": {
-      "password": "pbkdf2_sha256$870000$Jw5N4oepfcFV602IxJalvC$CoFfNlRn6Qe5zMAZkPi1bGmqHHPlCOy/tU5oDQxzp64=",
-      "last_login": null,
-      "is_superuser": false,
-      "username": "marydatabase404@gmail.com",
-      "first_name": "Mary",
-      "last_name": "Shah",
-      "email": "marydatabase404@gmail.com",
-      "is_staff": false,
-      "is_active": true,
-      "date_joined": "2025-01-30T12:00:20Z",
-      "profile_pic_id": null,
-      "email_verified": true,
-      "profile_pic_url": null,
-      "agreed_to_terms": false,
-      "groups": [],
-      "user_permissions": []
-    }
-  },
-  {
-    "model": "Mbase.user",
-    "pk": 10,
-    "fields": {
-      "password": "pbkdf2_sha256$870000$bG4dRVfH3ihBwLq4oDhvMf$6UeLTk15CGLCTva51epfLrvaNSuVhtxXqN4Smy3c8sI=",
-      "last_login": null,
-      "is_superuser": false,
-      "username": "sambhavmalla123@gmail.com",
-      "first_name": "Sambhav",
-      "last_name": "Malla",
-      "email": "sambhavmalla123@gmail.com",
-      "is_staff": false,
-      "is_active": true,
-      "date_joined": "2025-02-04T13:23:29.658Z",
-      "profile_pic_id": null,
-      "email_verified": true,
-      "profile_pic_url": null,
       "agreed_to_terms": true,
       "groups": [],
       "user_permissions": []
@@ -83,21 +39,21 @@
   },
   {
     "model": "Mbase.user",
-    "pk": 11,
+    "pk": 12,
     "fields": {
-      "password": "pbkdf2_sha256$870000$Kzrw9WasNQeGekBXdG0IAO$/6diw2MnD6ZVmbAqcP2GjLQ2p7CBZIo0puEs2FekBJM=",
-      "last_login": "2025-02-16T13:56:26Z",
-      "is_superuser": true,
+      "password": "pbkdf2_sha256$870000$KfSCOg6docSjKGRrCocEAT$l56bXqZ1KXzEcOu1e0rdRRfuCGasQx3tSe4aM6Kjxcs=",
+      "last_login": null,
+      "is_superuser": false,
       "username": "sameershahithakuri123@gmail.com",
-      "first_name": "Sam",
-      "last_name": "Shah",
+      "first_name": "erv",
+      "last_name": "Sameer",
       "email": "sameershahithakuri123@gmail.com",
-      "is_staff": true,
+      "is_staff": false,
       "is_active": true,
-      "date_joined": "2025-02-06T16:36:36Z",
-      "profile_pic_id": "67b1f95c432c476416b23736",
-      "email_verified": true,
-      "profile_pic_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Users/striaghtme.webp",
+      "date_joined": "2025-02-19T07:31:34.495Z",
+      "profile_pic_id": null,
+      "email_verified": false,
+      "profile_pic_url": null,
       "agreed_to_terms": true,
       "groups": [],
       "user_permissions": []
@@ -108,6 +64,7 @@
     "pk": 1,
     "fields": {
       "name": "S",
+      "slug": null,
       "description": "Small"
     }
   },
@@ -116,6 +73,7 @@
     "pk": 2,
     "fields": {
       "name": "M",
+      "slug": null,
       "description": "Medium"
     }
   },
@@ -124,6 +82,7 @@
     "pk": 3,
     "fields": {
       "name": "XS",
+      "slug": null,
       "description": "Extra Small"
     }
   },
@@ -132,6 +91,7 @@
     "pk": 4,
     "fields": {
       "name": "L",
+      "slug": null,
       "description": "Large"
     }
   },
@@ -140,6 +100,7 @@
     "pk": 5,
     "fields": {
       "name": "Xl",
+      "slug": null,
       "description": "Extra Large"
     }
   },
@@ -148,6 +109,7 @@
     "pk": 6,
     "fields": {
       "name": "XLL",
+      "slug": null,
       "description": "Extra Extra Large"
     }
   },
@@ -156,6 +118,7 @@
     "pk": 1,
     "fields": {
       "name": "Red",
+      "slug": null,
       "hex_code": "#FF0000"
     }
   },
@@ -164,6 +127,7 @@
     "pk": 2,
     "fields": {
       "name": "Blue",
+      "slug": null,
       "hex_code": "#0000FF"
     }
   },
@@ -172,6 +136,7 @@
     "pk": 3,
     "fields": {
       "name": "Yellow",
+      "slug": null,
       "hex_code": "#FFFF00"
     }
   },
@@ -180,6 +145,7 @@
     "pk": 4,
     "fields": {
       "name": "Green",
+      "slug": null,
       "hex_code": "#00FF00"
     }
   },
@@ -188,6 +154,7 @@
     "pk": 5,
     "fields": {
       "name": "Cyan",
+      "slug": null,
       "hex_code": "#00FFFF"
     }
   },
@@ -196,6 +163,7 @@
     "pk": 6,
     "fields": {
       "name": "Black",
+      "slug": null,
       "hex_code": "#000000"
     }
   },
@@ -204,6 +172,7 @@
     "pk": 7,
     "fields": {
       "name": "White",
+      "slug": null,
       "hex_code": "#FFFFFF"
     }
   },
@@ -212,6 +181,7 @@
     "pk": 8,
     "fields": {
       "name": "Pink",
+      "slug": null,
       "hex_code": "#FFC0CB"
     }
   },
@@ -220,6 +190,7 @@
     "pk": 9,
     "fields": {
       "name": "Gray",
+      "slug": null,
       "hex_code": "#808080"
     }
   },
@@ -228,6 +199,7 @@
     "pk": 10,
     "fields": {
       "name": "Orange",
+      "slug": null,
       "hex_code": "#FFA500"
     }
   },
@@ -236,6 +208,7 @@
     "pk": 11,
     "fields": {
       "name": "Purple",
+      "slug": null,
       "hex_code": "#800080"
     }
   },
@@ -557,6 +530,67 @@
       "name": "Kitchen Containers",
       "slug": "kitchen-containers",
       "category": 2
+    }
+  },
+  {
+    "model": "Mbase.product",
+    "pk": 1,
+    "fields": {
+      "user": null,
+      "slug": "slogan-hoodie-with-label-detail",
+      "name": "Slogan Hoodie With Label Detail",
+      "thumbnail_file_id": "67b4965d432c4764164cf530",
+      "thumbnail_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-1/slogan1-1.webp",
+      "brand": "Nike",
+      "description": null,
+      "rating": "3.92",
+      "review_count": 12,
+      "price": "301.00",
+      "sale_price": "240.00",
+      "discount_percentage": "20.00",
+      "countInStock": 7,
+      "createdAt": "2025-02-18T14:09:33.279Z",
+      "badge": "In Sale",
+      "colors": [3],
+      "sizes": [2, 4],
+      "categories": [16, 2],
+      "likes": []
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 1,
+    "fields": {
+      "image_file_id": "67b496a8432c4764164ec02a",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/1/ImageAlbums/slogan1-1.webp",
+      "product": 1
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 2,
+    "fields": {
+      "image_file_id": "67b496fe432c47641650a959",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-1/ImageAlbums/slogan1-2.webp",
+      "product": 1
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 3,
+    "fields": {
+      "image_file_id": "67b4970f432c476416510c94",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-1/ImageAlbums/slogan1-3.webp",
+      "product": 1
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 4,
+    "fields": {
+      "image_file_id": "67b49724432c476416517f6c",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-1/ImageAlbums/slogan1-4.webp",
+      "product": 1
     }
   }
 ]
