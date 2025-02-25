@@ -15,12 +15,13 @@ from .models import (
     Review,
     ShippingAddress,
     DiscountOffers,
+    Wishlist,
 )
 from .forms import GenreAdminForm, UserAdminForm, ProductAdminForm, ImageAlbumAdminForm
 from .mixins.imagekit import ImageKitMixin
 
 admin.site.register(
-    (Category, DiscountOffers, Size, Color, Order, OrderItem, ShippingAddress)
+    (Category, DiscountOffers, Wishlist, Size, Color, Order, OrderItem, ShippingAddress)
 )
 
 

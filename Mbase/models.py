@@ -76,7 +76,7 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if self.parent:
-            # Use parent's SLUG instead of NAME
+
             self.slug = slugify(f"{self.name}-{self.parent.slug}")
         else:
             self.slug = slugify(self.name)
@@ -206,6 +206,19 @@ class ImageAlbum(models.Model):
 
     class Meta:
         ordering = ["-id"]
+
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "product")
+        ordering = ["-added_at"]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name}"
 
 
 class Review(models.Model):

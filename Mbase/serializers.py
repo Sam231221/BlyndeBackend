@@ -16,6 +16,7 @@ from .models import (
     Review,
     Color,
     DiscountOffers,
+    Wishlist,
 )
 
 
@@ -207,6 +208,32 @@ class ImageAlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageAlbum
         fields = "__all__"
+
+
+class WishlistSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = Wishlist
+        fields = ["id", "product", "added_at"]
+        read_only_fields = ["id", "added_at"]
+
+
+class WishlistCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Wishlist
+        fields = ["product"]
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        product = validated_data["product"]
+        try:
+            wishlist_item = Wishlist.objects.create(user=user, product=product)
+            return wishlist_item
+        except Exception as e:
+            raise serializers.ValidationError(
+                {"detail": "This product is already in your wishlist."}
+            )
 
 
 class ReviewSerializer(serializers.ModelSerializer):

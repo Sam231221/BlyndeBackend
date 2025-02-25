@@ -29,9 +29,11 @@ from Mbase.serializers import (
     UserSerializer,
     UserCreateSerializer,
     UserSerializerWithToken,
+    WishlistSerializer,
+    WishlistCreateSerializer,
 )
 from Mbase.mixins.imagekit import imagekit
-
+from Mbase.models import Wishlist
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -39,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def loginUser(request):
+def login_user(request):
     email = request.data["email"]
     password = request.data["password"]
     remember_me = request.data.get("rememberMe")
@@ -92,7 +94,7 @@ def loginUser(request):
 
 
 @api_view(["POST"])
-def registerUser(request):
+def register_user(request):
     data = request.data
 
     required_fields = [
@@ -167,7 +169,7 @@ def registerUser(request):
 
 
 @api_view(["POST"])
-def logout(request):
+def logout_user(request):
     refresh_token = request.data.get("refresh")
 
     if not refresh_token:
@@ -315,7 +317,7 @@ def confirm_password_reset(request):
 
 
 @api_view(["GET"])
-def verify_email(request, uidb64, token):
+def verify_user_email(request, uidb64, token):
     try:
 
         uid = urlsafe_base64_decode(uidb64).decode()
@@ -380,7 +382,7 @@ def refresh_token_view(request):
 @api_view(["GET", "PUT"])
 @parser_classes([MultiPartParser, FormParser])
 @permission_classes([IsAuthenticated])
-def getUserProfile(request):
+def get_user_profile(request):
     user = request.user
 
     if request.method == "GET":
@@ -413,6 +415,62 @@ def getUserProfile(request):
 
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def wishlist_items(request):
+    if request.method == "GET":
+        wishlist_items = Wishlist.objects.filter(user=request.user)
+        serializer = WishlistSerializer(wishlist_items, many=True)
+        return Response(
+            {"count": wishlist_items.count(), "items": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
+    elif request.method == "POST":
+        product_id = request.data.get("product")
+        if not product_id:
+            return Response(
+                {"detail": "Product ID is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            wishlist_item = Wishlist.objects.get(
+                user=request.user, product_id=product_id
+            )
+
+            wishlist_item.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        except Wishlist.DoesNotExist:
+            serializer = WishlistCreateSerializer(
+                data=request.data, context={"request": request}
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def wishlist_item_delete(request, pk):
+    try:
+        wishlist_item = Wishlist.objects.get(pk=pk, user=request.user)
+    except Wishlist.DoesNotExist:
+        return Response(
+            {"detail": "Wishlist item not found."}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    wishlist_item.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["GET"])
