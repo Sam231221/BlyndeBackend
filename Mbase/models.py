@@ -3,6 +3,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.text import slugify
 from django.utils.html import mark_safe
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from decimal import Decimal
+from django.db.models import Q, F
 
 
 class User(AbstractUser):
@@ -125,42 +132,32 @@ class Product(models.Model):
     rating = models.DecimalField(
         max_digits=7, decimal_places=2, null=True, editable=False
     )
-    review_count = models.PositiveIntegerField(default=0, editable=False)
-    price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    sale_price = models.DecimalField(
-        max_digits=10, editable=False, decimal_places=2, null=True, blank=True
-    )
-    discount_percentage = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
+    price = models.DecimalField(
+        max_digits=7,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        decimal_places=2,
+        null=True,
+        blank=True,
     )
     countInStock = models.IntegerField(null=True, blank=True, default=0)
     createdAt = models.DateTimeField(auto_now_add=True)
-
-    likes = models.ManyToManyField(User, related_name="likes", default=None, blank=True)
+    likes = models.ManyToManyField(User, related_name="likes", blank=True)
     badge = models.CharField(
         max_length=20,
         choices=[
             ("Featured", "Featured"),
-            ("Top Rated", "Top Rated"),
-            ("In Sale", "In Sale"),
+            ("Trending", "Trending"),
+            ("Exclusive", "Exclusive"),
+            ("Limited Edition", "Limited Edition"),
         ],
         null=True,
         blank=True,
     )
 
     def save(self, *args, **kwargs):
-        if self.discount_percentage and not self.sale_price:
-            self.sale_price = self.price - (
-                self.price * (self.discount_percentage / 100)
-            )
-        super().save(*args, **kwargs)
         if not self.slug:
             self.slug = slugify(self.name)
         super(Product, self).save(*args, **kwargs)
-
-    def update_review_count(self):
-        self.review_count = self.reviews.count()
-        self.save()
 
     def update_rating(self):
         reviews = self.reviews.all()
@@ -177,9 +174,70 @@ class Product(models.Model):
             )
         return "No Image"
 
+    def get_discounted_price(self, coupon_code=None):
+        now = timezone.now()
+        content_type_product = ContentType.objects.get_for_model(Product)
+        content_type_category = ContentType.objects.get_for_model(Category)
+
+        # Get category and product discounts
+        discounts = Discount.objects.filter(
+            models.Q(
+                content_type=content_type_product,
+                object_id=self._id,
+                start_date__lte=now,
+                end_date__gte=now,
+            )
+            | models.Q(
+                content_type=content_type_category,
+                object_id__in=self.categories.values_list("_id", flat=True),
+                start_date__lte=now,
+                end_date__gte=now,
+            )
+        ).order_by("-priority")
+
+        best_price = self.price
+
+        for discount in discounts:
+            if discount.discount_type == "percentage":
+                discounted = self.price * (1 - discount.amount / 100)
+            else:
+                discounted = self.price - discount.amount
+
+            best_price = min(best_price, discounted)
+            break  # Apply highest-priority discount
+
+        # Apply coupon if valid
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(
+                    code=coupon_code,
+                    is_active=True,
+                    valid_from__lte=now,
+                    valid_to__gte=now,
+                    used__lt=F("max_uses"),
+                )
+                coupon_discount = coupon.discount
+
+                if coupon_discount.discount_type == "percentage":
+                    best_price *= 1 - coupon_discount.amount / 100
+                else:
+                    best_price -= coupon_discount.amount
+
+            except Coupon.DoesNotExist:
+                pass  # Ignore invalid coupon
+
+        return max(best_price, Decimal("0.00")).quantize(Decimal("0.01"))
+
+    def get_discount_percentage(self, coupon_code=None):
+        discounted_price = self.get_discounted_price(coupon_code=coupon_code)
+        if self.price > discounted_price:
+            discount = (self.price - discounted_price) / self.price * Decimal("100")
+            return discount.quantize(Decimal("0.01"))
+        return Decimal("0.00")
+
     @property
-    def effective_price(self):
-        return self.sale_price if self.on_sale and self.sale_price else self.price
+    def on_sale(self):
+        return self.discount_percentage is not None and self.discount_percentage > 0
 
     def __str__(self):
         return f"{self.name}"
@@ -231,8 +289,8 @@ class Review(models.Model):
     comment = models.TextField(null=True, blank=True)
     createdAt = models.DateTimeField(auto_now_add=True)
 
-    # def __str__(self):
-    #     return f"Comment on {self.user.first_name} {self.user.last_name}."
+    def __str__(self):
+        return f"Comment on {self.user.first_name} {self.user.last_name}."
 
 
 class Order(models.Model):
@@ -315,72 +373,64 @@ class ShippingAddress(models.Model):
 
 
 class Discount(models.Model):
-    PERCENTAGE = "percentage"
-    FIXED_AMOUNT = "fixed"
-    FREE_SHIPPING = "free_shipping"
-
-    DISCOUNT_TYPES = [
-        (PERCENTAGE, "Percentage"),
-        (FIXED_AMOUNT, "Fixed Amount"),
-        (FREE_SHIPPING, "Free Shipping"),
+    DISCOUNT_TYPE_CHOICES = [
+        ("percentage", "Percentage"),
+        ("fixed", "Fixed"),
     ]
 
-    name = models.CharField(max_length=255, unique=True)  # e.g., "Black Friday Sale"
-    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES)
-    value = models.DecimalField(
-        max_digits=10, decimal_places=2, help_text="Percentage or fixed discount value"
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+    discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES)
+    amount = models.DecimalField(
+        max_digits=5, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
     )
-    start_date = models.DateTimeField(null=True, blank=True)
-    end_date = models.DateTimeField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-
-    applies_to_all_products = models.BooleanField(
-        default=False
-    )  # If True, applies to all products
-    min_order_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Min order value required",
-    )
-
-    max_redemptions = models.PositiveIntegerField(
-        null=True, blank=True, help_text="Max times this discount can be used"
-    )
-    current_redemptions = models.PositiveIntegerField(default=0)
-
-    stackable = models.BooleanField(
-        default=False, help_text="Can this discount be combined with others?"
-    )
-    priority = models.PositiveIntegerField(
-        default=1, help_text="Higher priority discounts are applied first"
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+    priority = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
-        abstract = True  # This will be inherited by Coupons, Sales, and Vouchers
+        ordering = ["-priority"]
+        indexes = [
+            models.Index(fields=["content_type", "object_id"]),
+            models.Index(fields=["start_date", "end_date"]),
+        ]
 
     def __str__(self):
-        return f"{self.name} ({self.discount_type} - {self.value})"
+        return f"{self.amount} {self.discount_type} discount on {self.content_object}"
+
+    def clean(self):
+        if self.start_date >= self.end_date:
+            raise ValidationError("End date must be after start date")
 
 
-class Coupon(Discount):
-    code = models.CharField(
-        max_length=50, unique=True, help_text="Enter coupon code (e.g., SAVE10)"
-    )
-    user = models.ManyToManyField(User, blank=True, related_name="coupons_used")
-    one_time_use = models.BooleanField(
-        default=False, help_text="Can be used only once per user"
-    )
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True, null=True)
+    discount = models.ForeignKey(Discount, on_delete=models.CASCADE, null=True)
+    max_uses = models.PositiveIntegerField(default=1)
+    used = models.PositiveIntegerField(default=0)
+    valid_from = models.DateTimeField(null=True)
+    valid_to = models.DateTimeField(null=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.code}"
 
     def is_valid(self):
-        return self.is_active and (
-            self.max_redemptions is None
-            or self.current_redemptions < self.max_redemptions
+        now = timezone.now()
+        return (
+            self.is_active
+            and self.used < self.max_uses
+            and self.valid_from <= now <= self.valid_to
         )
+
+    def use_coupon(self):
+        """Safely increment the used count to avoid race conditions."""
+        if self.is_valid():
+            self.used = F("used") + 1  # Atomic update to prevent race conditions
+            self.save(update_fields=["used"])
+            return True
+        return False
 
 
 class DiscountOffers(models.Model):

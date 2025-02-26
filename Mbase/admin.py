@@ -16,12 +16,27 @@ from .models import (
     ShippingAddress,
     DiscountOffers,
     Wishlist,
+    Discount,
+    Coupon,
+    ContentType,
 )
 from .forms import GenreAdminForm, UserAdminForm, ProductAdminForm, ImageAlbumAdminForm
 from .mixins.imagekit import ImageKitMixin
 
 admin.site.register(
-    (Category, DiscountOffers, Wishlist, Size, Color, Order, OrderItem, ShippingAddress)
+    (
+        Category,
+        DiscountOffers,
+        ContentType,
+        Discount,
+        Coupon,
+        Wishlist,
+        Size,
+        Color,
+        Order,
+        OrderItem,
+        ShippingAddress,
+    )
 )
 
 
@@ -127,7 +142,6 @@ class ProductAdmin(admin.ModelAdmin, ImageKitMixin):
         "name",
         "price",
         "badge",
-        "discount_percentage",
         "rating",
         "countInStock",
     ]
@@ -157,7 +171,7 @@ class ProductAdmin(admin.ModelAdmin, ImageKitMixin):
                 )
             },
         ),
-        ("Pricing", {"fields": ("price", "discount_percentage", "countInStock")}),
+        ("Pricing", {"fields": ("price", "countInStock")}),
         ("Other Details", {"fields": ("likes",)}),
     )
     list_editable = ["price"]

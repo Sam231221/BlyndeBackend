@@ -167,19 +167,33 @@ class DiscountOffersSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     reviews = serializers.SerializerMethodField(read_only=True)
+    reviews_count = serializers.SerializerMethodField(read_only=True)
     colors = ColorSerializer(many=True)
     categories = CategorySerializer(many=True)
     sizes = SizeSerializer(many=True)
     image_albums = serializers.SerializerMethodField()
+    discounted_price = serializers.SerializerMethodField()
+    discount_percentage = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = "__all__"
 
+    def get_discounted_price(self, obj):
+        discounted_price = obj.get_discounted_price()
+        return discounted_price if discounted_price else None
+
+    def get_discount_percentage(self, obj):
+        discounted_percentage = obj.get_discount_percentage()
+        return discounted_percentage if discounted_percentage else None
+
     def get_reviews(self, obj):
         reviews = obj.reviews.all()
         serializer = ReviewSerializer(reviews, many=True)
         return serializer.data
+
+    def get_reviews_count(self, obj):
+        return obj.reviews.count()
 
     def get_image_albums(self, obj):
         image_albums = ImageAlbum.objects.filter(product=obj)

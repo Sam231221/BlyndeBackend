@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
-from Mbase.models import Product, Order, OrderItem, ShippingAddress
+from Mbase.models import Product, Order, OrderItem, ShippingAddress, Coupon
 from Mbase.serializers import OrderSerializer
 from Mbase.pagination import OrderPagination
 
@@ -114,6 +114,36 @@ class AddOrderItemsView(APIView):
 
         serializer = OrderSerializer(order, many=False)
         return Response(serializer.data)
+
+
+def redeem_coupon(code):
+    try:
+        coupon = Coupon.objects.get(code=code, is_active=True)
+        if coupon.used < coupon.max_uses:
+            coupon.used += 1
+            coupon.save()
+            return True
+    except Coupon.DoesNotExist:
+        pass
+    return False
+
+
+class ApplyCouponView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, product_id, coupon_code):
+        try:
+            product = Product.objects.get(id=product_id)
+            new_price = product.get_discounted_price(coupon_code=coupon_code)
+
+            if redeem_coupon(coupon_code):
+                return Response({"success": True, "new_price": str(new_price)})
+            else:
+                return Response(
+                    {"success": False, "message": "Coupon is invalid or expired."}
+                )
+        except Product.DoesNotExist:
+            return Response({"success": False, "message": "Product not found."})
 
 
 class UpdateOrderToPaidView(APIView):
