@@ -28,8 +28,6 @@ admin.site.register(
         Category,
         DiscountOffers,
         ContentType,
-        Discount,
-        Coupon,
         Wishlist,
         Size,
         Color,
@@ -205,6 +203,33 @@ class ReviewAdmin(admin.ModelAdmin):
     )
     list_filter = ("rating",)
     search_fields = ("product__name", "user__username")
+
+
+@admin.register(Discount)
+class DiscountAdmin(admin.ModelAdmin):
+    list_display = (
+        "discount_type",
+        "object_id",
+        "priority",
+        "content_type",
+        "is_global",
+        "start_date",
+        "end_date",
+    )
+    search_fields = ("discount_type", "start_date", "end_date")
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = (
+        "code",
+        "discount",
+        "max_uses",
+        "is_active",
+        "valid_from",
+        "valid_to",
+    )
+    search_fields = ("code", "discount__discount_type", "valid_from", "valid_to")
 
 
 @admin.register(Genre)

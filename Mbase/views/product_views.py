@@ -24,6 +24,7 @@ from Mbase.models import (
     Category,
     ImageAlbum,
     DiscountOffers,
+    Discount,
 )
 from Mbase.serializers import (
     CategoryWithChildrenSerializer,
@@ -34,9 +35,56 @@ from Mbase.serializers import (
     ReviewSerializer,
     ProductSerializer,
     ProductCreateUpdateSerializer,
+    DiscountSerializer,
 )
 from Mbase.filters import ProductFilter
 from Mbase.pagination import ProductPagination
+
+from django.utils.timezone import now
+from django.db.models import Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+
+class HighestPriorityDiscountAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        # Get the highest priority discount, filtering by active date range
+        highest_discount = (
+            Discount.objects.filter(start_date__lte=now(), end_date__gte=now())
+            .order_by("-priority")
+            .first()
+        )
+
+        if not highest_discount:
+            return Response(
+                {"message": "No active discount found"}, status=status.HTTP_200_OK
+            )
+
+        return Response(
+            DiscountSerializer(highest_discount).data, status=status.HTTP_200_OK
+        )
+
+
+class DeleteHighestPriorityDiscountAPIView(APIView):
+    def delete(self, request, *args, **kwargs):
+        highest_discount = (
+            Discount.objects.filter(start_date__lte=now(), end_date__gte=now())
+            .order_by("-priority")
+            .first()
+        )
+
+        if not highest_discount:
+            return Response(
+                {"message": "No active discount found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        highest_discount.delete()
+        return Response(
+            {"message": "Highest priority discount deleted successfully"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class DiscountOffersView(APIView):

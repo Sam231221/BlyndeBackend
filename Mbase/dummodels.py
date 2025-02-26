@@ -175,56 +175,38 @@ class Product(models.Model):
         return "No Image"
 
     def get_discounted_price(self, coupon_code=None):
-        """
-        Calculate the final discounted price by selecting the single discount with the highest priority
-        that meets the minimum discount criteria:
-          - For percentage discounts: amount must be >= 5.
-          - For fixed discounts: (fixed amount / price)*100 must be >= 5%.
-        Then, if a valid product-level coupon is provided, its discount is applied.
-        """
         now = timezone.now()
         content_type_product = ContentType.objects.get_for_model(Product)
         content_type_category = ContentType.objects.get_for_model(Category)
-        # Gather discounts from three sources:
+
+        # Get category and product discounts
         discounts = Discount.objects.filter(
-            Q(
+            models.Q(
                 content_type=content_type_product,
                 object_id=self._id,
                 start_date__lte=now,
                 end_date__gte=now,
             )
-            | Q(
+            | models.Q(
                 content_type=content_type_category,
                 object_id__in=self.categories.values_list("_id", flat=True),
                 start_date__lte=now,
                 end_date__gte=now,
             )
-            | Q(is_global=True, start_date__lte=now, end_date__gte=now)
         ).order_by("-priority")
 
         best_price = self.price
-        valid_discount_found = False
 
         for discount in discounts:
             if discount.discount_type == "percentage":
-                # Validate percentage discount minimum amount
-                if discount.amount < 5:
-                    raise ValidationError("Percentage discount must be at least 5%.")
-                computed_price = self.price * (1 - discount.amount / 100)
-            else:  # fixed discount
-                computed_percentage = (discount.amount / self.price) * 100
-                if computed_percentage < 5:
-                    raise ValidationError(
-                        "Fixed discount must be at least 5% of the product price."
-                    )
-                computed_price = self.price - discount.amount
+                discounted = self.price * (1 - discount.amount / 100)
+            else:
+                discounted = self.price - discount.amount
 
-            best_price = computed_price
-            valid_discount_found = True
-            # Use the first valid discount (highest-priority) and exit the loop.
-            break
+            best_price = min(best_price, discounted)
+            break  # Apply highest-priority discount
 
-        # Apply coupon discount if provided (only if coupon_scope is "product")
+        # Apply coupon if valid
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(
@@ -234,61 +216,41 @@ class Product(models.Model):
                     valid_to__gte=now,
                     used__lt=F("max_uses"),
                 )
-                if coupon.coupon_scope == "product":
-                    coupon_discount = coupon.discount
-                    if coupon_discount.discount_type == "percentage":
-                        if coupon_discount.amount < 5:
-                            raise ValidationError(
-                                "Coupon percentage discount must be at least 5%."
-                            )
-                        best_price *= 1 - coupon_discount.amount / 100
-                    else:
-                        coupon_computed_percentage = (
-                            coupon_discount.amount / self.price
-                        ) * 100
-                        if coupon_computed_percentage < 5:
-                            raise ValidationError(
-                                "Coupon fixed discount must be at least 5% of the product price."
-                            )
-                        best_price -= coupon_discount.amount
+                coupon_discount = coupon.discount
+
+                if coupon_discount.discount_type == "percentage":
+                    best_price *= 1 - coupon_discount.amount / 100
+                else:
+                    best_price -= coupon_discount.amount
+
             except Coupon.DoesNotExist:
-                pass
+                pass  # Ignore invalid coupon
 
         return max(best_price, Decimal("0.00")).quantize(Decimal("0.01"))
 
     def get_discount_percentage(self, coupon_code=None):
-        """
-        Calculate the discount percentage based on the product's original price and the computed
-        discounted price (including any valid coupon discount).
-        """
         discounted_price = self.get_discounted_price(coupon_code=coupon_code)
-        if self.price and self.price > discounted_price:
+        if self.price > discounted_price:
             discount = (self.price - discounted_price) / self.price * Decimal("100")
             return discount.quantize(Decimal("0.01"))
         return Decimal("0.00")
 
     @property
     def on_sale(self):
-        """Returns True if there is any discount applied."""
-        return self.get_discount_percentage() > Decimal("0.00")
+        return self.discount_percentage is not None and self.discount_percentage > 0
 
     def __str__(self):
         return f"{self.name}"
 
 
 class Discount(models.Model):
-
     DISCOUNT_TYPE_CHOICES = [
         ("percentage", "Percentage"),
         ("fixed", "Fixed"),
     ]
-    description = models.CharField(max_length=200, editable=False, null=True)
-    # For non-global discounts, content_type and object_id specify the target.
-    # For global discounts, is_global is True and these can remain null.
-    content_type = models.ForeignKey(
-        ContentType, on_delete=models.CASCADE, null=True, blank=True
-    )
-    object_id = models.PositiveIntegerField(null=True, blank=True)
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
     discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES)
     amount = models.DecimalField(
@@ -297,7 +259,6 @@ class Discount(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     priority = models.PositiveSmallIntegerField(default=0)
-    is_global = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-priority"]
@@ -306,29 +267,12 @@ class Discount(models.Model):
             models.Index(fields=["start_date", "end_date"]),
         ]
 
-    def save(self, *args, **kwargs):
-        if not self.description:
-            target = "All Products" if self.is_global else self.content_object
-            self.description = (
-                f"{self.amount} {self.discount_type} discount on {target}"
-            )
-        super(Discount, self).save(*args, **kwargs)
-
     def __str__(self):
-        target = "All Products" if self.is_global else self.content_object
-        return f"{self.amount} {self.discount_type} discount on {target}"
+        return f"{self.amount} {self.discount_type} discount on {self.content_object}"
 
     def clean(self):
-        # Global discounts should not have a specific target.
-        if self.is_global and (self.content_type or self.object_id):
-            raise ValidationError(
-                "Global discounts should not have a specific content_type or object_id set."
-            )
-        if self.start_date and self.end_date and self.start_date >= self.end_date:
+        if self.start_date >= self.end_date:
             raise ValidationError("End date must be after start date")
-        # For percentage discounts, enforce a minimum amount.
-        if self.discount_type == "percentage" and self.amount < 5:
-            raise ValidationError("Percentage discount amount must be at least 5%.")
 
 
 class Coupon(models.Model):
@@ -339,13 +283,6 @@ class Coupon(models.Model):
     valid_from = models.DateTimeField(null=True)
     valid_to = models.DateTimeField(null=True)
     is_active = models.BooleanField(default=True)
-    COUPON_SCOPE_CHOICES = [
-        ("product", "Product"),
-        ("order", "Order"),
-    ]
-    coupon_scope = models.CharField(
-        max_length=10, choices=COUPON_SCOPE_CHOICES, default="product"
-    )
 
     def __str__(self):
         return f"{self.code}"
@@ -359,8 +296,9 @@ class Coupon(models.Model):
         )
 
     def use_coupon(self):
+        """Safely increment the used count to avoid race conditions."""
         if self.is_valid():
-            self.used = F("used") + 1
+            self.used = F("used") + 1  # Atomic update to prevent race conditions
             self.save(update_fields=["used"])
             return True
         return False

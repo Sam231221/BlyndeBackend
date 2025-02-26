@@ -17,6 +17,7 @@ from .models import (
     Color,
     DiscountOffers,
     Wishlist,
+    Discount,
 )
 
 
@@ -215,6 +216,21 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
             "price",
             "countInStock",
             "badge",
+        ]
+
+
+class DiscountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Discount
+        fields = [
+            "id",
+            "description",
+            "discount_type",
+            "amount",
+            "is_global",
+            "start_date",
+            "end_date",
+            "priority",
         ]
 
 
