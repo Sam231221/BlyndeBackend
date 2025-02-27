@@ -1,6 +1,6 @@
 import logging
 from django.conf import settings
-from django.db.models.signals import pre_save, post_save, pre_delete
+from django.db.models.signals import pre_save, post_delete, post_save, pre_delete
 from django.dispatch import receiver
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -16,9 +16,8 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-@receiver(post_save, sender=Review)
+@receiver([post_save, post_delete], sender=Review)
 def update_product_rating(sender, instance, **kwargs):
-    instance.product.update_review_count()
     instance.product.update_rating()
 
 

@@ -164,6 +164,7 @@ class Product(models.Model):
         if reviews.exists():
             self.rating = reviews.aggregate(models.Avg("rating"))["rating__avg"]
         else:
+
             self.rating = None
         self.save()
 
@@ -196,7 +197,6 @@ class Product(models.Model):
         ).order_by("-priority")
 
         best_price = self.price
-        valid_discount_found = False
 
         for discount in discounts:
             if discount.discount_type == "percentage":
@@ -213,7 +213,6 @@ class Product(models.Model):
                 computed_price = self.price - discount.amount
 
             best_price = computed_price
-            valid_discount_found = True
 
             break
 
