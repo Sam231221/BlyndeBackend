@@ -175,13 +175,6 @@ class Product(models.Model):
         return "No Image"
 
     def get_discounted_price(self, coupon_code=None):
-        """
-        Calculate the final discounted price by selecting the single discount with the highest priority
-        that meets the minimum discount criteria:
-          - For percentage discounts: amount must be >= 5.
-          - For fixed discounts: (fixed amount / price)*100 must be >= 5%.
-        Then, if a valid product-level coupon is provided, its discount is applied.
-        """
         now = timezone.now()
         content_type_product = ContentType.objects.get_for_model(Product)
         content_type_category = ContentType.objects.get_for_model(Category)
@@ -207,11 +200,11 @@ class Product(models.Model):
 
         for discount in discounts:
             if discount.discount_type == "percentage":
-                # Validate percentage discount minimum amount
+
                 if discount.amount < 5:
                     raise ValidationError("Percentage discount must be at least 5%.")
                 computed_price = self.price * (1 - discount.amount / 100)
-            else:  # fixed discount
+            else:
                 computed_percentage = (discount.amount / self.price) * 100
                 if computed_percentage < 5:
                     raise ValidationError(
@@ -221,10 +214,9 @@ class Product(models.Model):
 
             best_price = computed_price
             valid_discount_found = True
-            # Use the first valid discount (highest-priority) and exit the loop.
+
             break
 
-        # Apply coupon discount if provided (only if coupon_scope is "product")
         if coupon_code:
             try:
                 coupon = Coupon.objects.get(
@@ -257,10 +249,6 @@ class Product(models.Model):
         return max(best_price, Decimal("0.00")).quantize(Decimal("0.01"))
 
     def get_discount_percentage(self, coupon_code=None):
-        """
-        Calculate the discount percentage based on the product's original price and the computed
-        discounted price (including any valid coupon discount).
-        """
         discounted_price = self.get_discounted_price(coupon_code=coupon_code)
         if self.price and self.price > discounted_price:
             discount = (self.price - discounted_price) / self.price * Decimal("100")
@@ -269,7 +257,6 @@ class Product(models.Model):
 
     @property
     def on_sale(self):
-        """Returns True if there is any discount applied."""
         return self.get_discount_percentage() > Decimal("0.00")
 
     def __str__(self):
@@ -319,14 +306,12 @@ class Discount(models.Model):
         return f"{self.amount} {self.discount_type} discount on {target}"
 
     def clean(self):
-        # Global discounts should not have a specific target.
         if self.is_global and (self.content_type or self.object_id):
             raise ValidationError(
                 "Global discounts should not have a specific content_type or object_id set."
             )
         if self.start_date and self.end_date and self.start_date >= self.end_date:
             raise ValidationError("End date must be after start date")
-        # For percentage discounts, enforce a minimum amount.
         if self.discount_type == "percentage" and self.amount < 5:
             raise ValidationError("Percentage discount amount must be at least 5%.")
 

@@ -250,8 +250,6 @@ def request_password_reset(request):
                 to=recipient_list,
             )
             email.attach_alternative(html_content, "text/html")
-
-            # Send email
             email.send(fail_silently=False)
 
             logger.info("Password reset email sent successfully to %s", user.email)
@@ -363,8 +361,6 @@ def refresh_token_view(request):
         refresh = RefreshToken(refresh_token)
         if hasattr(refresh, "blacklist"):
             refresh.blacklist()
-
-        # Create a new refresh token (if rotation is enabled)
         new_refresh = RefreshToken.for_user(refresh.user)
 
         return Response(

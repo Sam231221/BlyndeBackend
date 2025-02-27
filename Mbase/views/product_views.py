@@ -49,7 +49,6 @@ from rest_framework import status
 
 class HighestPriorityDiscountAPIView(APIView):
     def get(self, request, *args, **kwargs):
-        # Get the highest priority discount, filtering by active date range
         highest_discount = (
             Discount.objects.filter(start_date__lte=now(), end_date__gte=now())
             .order_by("-priority")
@@ -323,8 +322,5 @@ class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        """
-        Optionally, you can modify this method to customize how the review is fetched (e.g., using the review ID).
-        """
         review = get_object_or_404(Review, pk=self.kwargs["pk"])
         return review

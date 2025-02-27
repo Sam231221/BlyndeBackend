@@ -163,7 +163,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class DiscountOffersSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscountOffers
-        fields = "__all__"  # Include all fields
+        fields = "__all__"
 
 
 class ProductSerializer(serializers.ModelSerializer):
