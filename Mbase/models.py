@@ -263,14 +263,14 @@ class Product(models.Model):
 
 
 class Discount(models.Model):
-
     DISCOUNT_TYPE_CHOICES = [
         ("percentage", "Percentage"),
         ("fixed", "Fixed"),
     ]
-    description = models.CharField(max_length=200, editable=False, null=True)
-    # For non-global discounts, content_type and object_id specify the target.
-    # For global discounts, is_global is True and these can remain null.
+
+    description = models.CharField(
+        max_length=200, editable=False, null=True, blank=True
+    )
     content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, null=True, blank=True
     )
@@ -280,8 +280,8 @@ class Discount(models.Model):
     amount = models.DecimalField(
         max_digits=5, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
     )
-    start_date = models.DateTimeField(null=True)
-    end_date = models.DateTimeField(null=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
     priority = models.PositiveSmallIntegerField(default=0)
     is_global = models.BooleanField(default=False)
 
@@ -292,17 +292,28 @@ class Discount(models.Model):
             models.Index(fields=["start_date", "end_date"]),
         ]
 
+    def generate_description(self):
+        if self.is_global:
+            target = "All Products"
+        else:
+            target = (
+                str(self.content_object) if self.content_object else "Specific Product"
+            )
+
+        if self.discount_type == "fixed":
+            discount_value = f"${self.amount}"
+        else:
+            discount_value = f"{self.amount}%"
+
+        return f"{discount_value} discount on {target}"
+
     def save(self, *args, **kwargs):
         if not self.description:
-            target = "All Products" if self.is_global else self.content_object
-            self.description = (
-                f"{self.amount} {self.discount_type} discount on {target}"
-            )
-        super(Discount, self).save(*args, **kwargs)
+            self.description = self.generate_description()
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        target = "All Products" if self.is_global else self.content_object
-        return f"{self.amount} {self.discount_type} discount on {target}"
+        return self.description or self.generate_description()
 
     def clean(self):
         if self.is_global and (self.content_type or self.object_id):
