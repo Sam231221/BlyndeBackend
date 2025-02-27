@@ -94,9 +94,6 @@ class DiscountOffersView(APIView):
 
 
 class DiscountOfferDeleteView(APIView):
-    """
-    API endpoint to delete a discount offer by ID.
-    """
 
     def delete(self, request, pk):
         try:
@@ -137,21 +134,6 @@ class SizeListView(APIView):
 class ColorListView(generics.ListAPIView):
     serializer_class = ColorSerializer
     queryset = Color.objects.all()
-
-
-class ProductsView(generics.ListAPIView):
-    serializer_class = ProductSerializer
-    pagination_class = ProductPagination
-
-    def get_queryset(self):
-        query = self.request.query_params.get("keyword", "")
-        return (
-            Product.objects.filter(name__icontains=query)
-            .order_by("-createdAt")
-            .prefetch_related(
-                "reviews", "colors", "categories", "sizes", "imagealbum_set"
-            )
-        )
 
 
 class TopProductsView(generics.ListAPIView):
@@ -207,20 +189,6 @@ class RecentProductsView(generics.ListAPIView):
             product_obj = Product.objects.filter(_id=product["_id"]).first()
             imagealbum_objs = ImageAlbum.objects.filter(product=product_obj)
             product["images"] = ImageAlbumSerializer(imagealbum_objs, many=True).data
-        return Response(response.data)
-
-
-class FeaturedProductsView(generics.ListAPIView):
-    serializer_class = ProductSerializer
-
-    def get_queryset(self):
-        return Product.objects.filter(is_featured=True)[:8]
-
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        for product in response.data:
-            product_obj = Product.objects.filter(_id=product["_id"]).first()
-            product["images"] = list(product_obj.imagealbum_set.values())
         return Response(response.data)
 
 

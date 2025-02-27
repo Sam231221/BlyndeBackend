@@ -26,10 +26,8 @@ urlpatterns = [
     ),
     path("colors/", views.ColorListView.as_view(), name="colors"),
     # Product list types
-    path("list/", views.ProductsView.as_view(), name="products"),
     path("all/", views.ProductListView.as_view(), name="all-products"),
     path("top/", views.TopProductsView.as_view(), name="top-products"),
-    path("featured/", views.FeaturedProductsView.as_view(), name="featured-products"),
     path("recents/", views.RecentProductsView.as_view(), name="recent-products"),
     path("deals/", views.DealProductsView.as_view(), name="deal-products"),
     path(
