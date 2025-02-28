@@ -3,6 +3,11 @@ from Mbase.views import product_views as views
 
 urlpatterns = [
     path(
+        "<slug:product_slug>/apply-coupon/",
+        views.ProductCouponAPIView.as_view(),
+        name="product-apply-coupon",
+    ),
+    path(
         "highest-priority-discountoffer/",
         views.HighestPriorityDiscountAPIView.as_view(),
         name="highest-priority-discountoffer",

@@ -2,6 +2,11 @@ from django.urls import path
 from Mbase.views import order_views as views
 
 urlpatterns = [
+    path(
+        "orders/<int:order_id>/apply-coupon/",
+        views.OrderCouponAPIView.as_view(),
+        name="order-apply-coupon",
+    ),
     path("add/", views.AddOrderItemsView.as_view(), name="order-add"),
     path("myorders/", views.GetMyOrdersView.as_view(), name="get-my-orders"),
     path(

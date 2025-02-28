@@ -1,6 +1,8 @@
 from django.db.models import Q, Count
 from django.http import JsonResponse
+
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
@@ -12,7 +14,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.filters import SearchFilter, OrderingFilter
-
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -25,6 +27,8 @@ from Mbase.models import (
     ImageAlbum,
     DiscountOffers,
     Discount,
+    Coupon,
+    Order,
 )
 from Mbase.serializers import (
     CategoryWithChildrenSerializer,
@@ -45,6 +49,67 @@ from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+
+class ProductCouponAPIView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, request, product_slug):
+        product = get_object_or_404(Product, slug=product_slug)
+        coupon_code = request.data.get("coupon_code")
+        try:
+            coupon = Coupon.objects.get(code=coupon_code)
+        except Coupon.DoesNotExist:
+            return Response(
+                {"error": "Invalid coupon   code"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        now = timezone.now()
+        if not (
+            coupon.is_active
+            and coupon.valid_from <= now <= coupon.valid_to
+            and coupon.used < coupon.max_uses
+        ):
+            return Response(
+                {"error": "Coupon expired or invalid"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if coupon.coupon_scope != "product":
+            return Response(
+                {"error": "Coupon not valid for products"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        discount = coupon.discount
+        # Validate discount applicability
+        applicable = False
+        if discount.is_global:
+            applicable = True
+        else:
+            model_class = discount.content_type.model_class()
+            if model_class == Product:
+                applicable = product._id == discount.object_id
+            elif model_class == Category:
+                applicable = product.categories.filter(_id=discount.object_id).exists()
+
+        if not applicable:
+            return Response(
+                {"error": "Coupon not applicable to this product"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            discounted_price = product.get_discounted_price(coupon_code=coupon_code)
+            discount_pct = product.get_discount_percentage(coupon_code=coupon_code)
+            return Response(
+                {
+                    "discounted_price": discounted_price,
+                    "discount_percentage": float(discount_pct),
+                    "valid": True,
+                }
+            )
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class HighestPriorityDiscountAPIView(APIView):

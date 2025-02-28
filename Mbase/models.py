@@ -326,6 +326,70 @@ class Discount(models.Model):
             raise ValidationError("Percentage discount amount must be at least 5%.")
 
 
+class Order(models.Model):
+    _id = models.AutoField(primary_key=True, editable=False)
+    order_number = models.CharField(
+        max_length=20, unique=True, null=True, editable=False, db_index=True
+    )
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    paymentMethod = models.CharField(max_length=200, null=True, blank=True)
+    itemsPrice = models.DecimalField(
+        max_digits=7, decimal_places=2, null=True, blank=True
+    )
+    taxPrice = models.DecimalField(
+        max_digits=7, decimal_places=2, null=True, blank=True
+    )
+    shippingPrice = models.DecimalField(
+        max_digits=7, decimal_places=2, null=True, blank=True
+    )
+    totalPrice = models.DecimalField(
+        max_digits=7, decimal_places=2, null=True, blank=True
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("Pending", "Pending"),
+            ("Paid", "Paid"),
+            ("Shipped", "Shipped"),
+            ("Delivered", "Delivered"),
+        ],
+        default="Pending",
+    )
+    isPaid = models.BooleanField(default=False)
+    paidAt = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    isDelivered = models.BooleanField(default=False)
+    deliveredAt = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = self.generate_order_number()
+        super().save(*args, **kwargs)
+
+    def generate_order_number(self):
+        return f"ORD-{uuid.uuid4().hex[:10].upper()}"
+
+    def __str__(self):
+        return self.order_number
+
+
+class OrderItem(models.Model):
+    _id = models.AutoField(primary_key=True, editable=False)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="order_items", null=True
+    )
+    name = models.CharField(max_length=200, null=True, blank=True)
+    color = models.CharField(max_length=200, null=True, blank=True)
+    size = models.CharField(max_length=200, null=True, blank=True)
+    qty = models.IntegerField(null=True, blank=True, default=0)
+    price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    thumbnail = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return str(self.name)
+
+
 class Coupon(models.Model):
     code = models.CharField(max_length=50, unique=True, null=True)
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE, null=True)
@@ -482,70 +546,6 @@ class DiscountOffers(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Order(models.Model):
-    _id = models.AutoField(primary_key=True, editable=False)
-    order_number = models.CharField(
-        max_length=20, unique=True, null=True, editable=False, db_index=True
-    )
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    paymentMethod = models.CharField(max_length=200, null=True, blank=True)
-    itemsPrice = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
-    taxPrice = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
-    shippingPrice = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
-    totalPrice = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ("Pending", "Pending"),
-            ("Paid", "Paid"),
-            ("Shipped", "Shipped"),
-            ("Delivered", "Delivered"),
-        ],
-        default="Pending",
-    )
-    isPaid = models.BooleanField(default=False)
-    paidAt = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-    isDelivered = models.BooleanField(default=False)
-    deliveredAt = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-    createdAt = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        if not self.order_number:
-            self.order_number = self.generate_order_number()
-        super().save(*args, **kwargs)
-
-    def generate_order_number(self):
-        return f"ORD-{uuid.uuid4().hex[:10].upper()}"
-
-    def __str__(self):
-        return self.order_number
-
-
-class OrderItem(models.Model):
-    _id = models.AutoField(primary_key=True, editable=False)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
-    order = models.ForeignKey(
-        Order, on_delete=models.CASCADE, related_name="order_items", null=True
-    )
-    name = models.CharField(max_length=200, null=True, blank=True)
-    color = models.CharField(max_length=200, null=True, blank=True)
-    size = models.CharField(max_length=200, null=True, blank=True)
-    qty = models.IntegerField(null=True, blank=True, default=0)
-    price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
-    thumbnail = models.CharField(max_length=200, null=True, blank=True)
-
-    def __str__(self):
-        return str(self.name)
 
 
 class ShippingAddress(models.Model):

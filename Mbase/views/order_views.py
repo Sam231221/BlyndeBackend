@@ -1,6 +1,9 @@
 from django.db import transaction
 from django.utils import timezone
 from datetime import datetime
+from decimal import Decimal
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -47,22 +50,90 @@ class GetMyOrdersView(APIView):
     def get(self, request):
         user = request.user
         orders = user.order_set.order_by("-_id")
-        # Sorting
+
         ordering = request.GET.get("sortBy", None)
-        sort_order = request.GET.get("sortOrder", "asc")  # Default ascending
+        sort_order = request.GET.get("sortOrder", "asc")
 
         if ordering:
             if sort_order == "desc":
-                ordering = f"-{ordering}"  # Add negative sign for descending
+                ordering = f"-{ordering}"
             orders = orders.order_by(ordering)
-
-        # Pagination
         paginator = OrderPagination()
         page = paginator.paginate_queryset(orders, request)
 
-        serializer = OrderSerializer(page, many=True)  # Use your OrderSerializer
-
+        serializer = OrderSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
+
+
+class OrderCouponAPIView(APIView):
+    def post(self, request, order_id):
+        coupon_code = request.data.get("coupon_code")
+        if not coupon_code:
+            return Response(
+                {"error": "Coupon code is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        order = get_object_or_404(Order, _id=order_id)
+
+        try:
+            coupon = Coupon.objects.get(code=coupon_code)
+        except Coupon.DoesNotExist:
+            return Response(
+                {"error": "Invalid coupon code."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if coupon.coupon_scope != "order":
+            return Response(
+                {"error": "Coupon is not valid for order level."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not coupon.is_valid():
+            return Response(
+                {"error": "Coupon is not valid or has expired."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not order.totalPrice:
+            return Response(
+                {"error": "Order total price is not set."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        original_total = order.totalPrice
+
+        try:
+            if coupon.discount.discount_type == "percentage":
+                if coupon.discount.amount < 5:
+                    raise ValidationError(
+                        "Coupon percentage discount must be at least 5%."
+                    )
+                discounted_total = order.totalPrice * (1 - coupon.discount.amount / 100)
+            else:  # fixed discount
+                computed_percentage = (coupon.discount.amount / order.totalPrice) * 100
+                if computed_percentage < 5:
+                    raise ValidationError(
+                        "Coupon fixed discount must be at least 5% of the order total."
+                    )
+                discounted_total = order.totalPrice - coupon.discount.amount
+
+            discounted_total = max(discounted_total, Decimal("0.00")).quantize(
+                Decimal("0.01")
+            )
+            order.totalPrice = discounted_total
+            order.save(update_fields=["totalPrice"])
+            coupon.use_coupon()
+        except ValidationError as e:
+            return Response({"error": e.message}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            "order_id": order._id,
+            "original_total": str(original_total),
+            "discounted_total": str(discounted_total),
+            "coupon_code": coupon_code,
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class AddOrderItemsView(APIView):
