@@ -387,7 +387,22 @@ class OrderItem(models.Model):
     thumbnail = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
-        return str(self.name)
+        return f"{self.name}, Color:{self.color}, Size:{self.size}, Qty:{self.qty} for order {self.order.order_number}"
+
+
+class ShippingAddress(models.Model):
+    _id = models.AutoField(primary_key=True, editable=False)
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, null=True, blank=True)
+    address = models.CharField(max_length=200, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    postalCode = models.CharField(max_length=200, null=True, blank=True)
+    country = models.CharField(max_length=200, null=True, blank=True)
+    shippingPrice = models.DecimalField(
+        max_digits=7, decimal_places=2, null=True, blank=True
+    )
+
+    def __str__(self):
+        return f"{self.address}, {self.city}, {self.country} for order {self.order._id} by {self.order.user}"
 
 
 class Coupon(models.Model):
@@ -546,18 +561,3 @@ class DiscountOffers(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class ShippingAddress(models.Model):
-    _id = models.AutoField(primary_key=True, editable=False)
-    order = models.OneToOneField(Order, on_delete=models.CASCADE, null=True, blank=True)
-    address = models.CharField(max_length=200, null=True, blank=True)
-    city = models.CharField(max_length=100, null=True, blank=True)
-    postalCode = models.CharField(max_length=200, null=True, blank=True)
-    country = models.CharField(max_length=200, null=True, blank=True)
-    shippingPrice = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
-
-    def __str__(self):
-        return f"{self.address}, {self.city}, {self.country} for order {self.order._id} by {self.order.user}"

@@ -139,9 +139,11 @@ class OrderCouponAPIView(APIView):
 class AddOrderItemsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @transaction.atomic
     def post(self, request):
         user = request.user
         data = request.data
+        print("DATA:", data)
         orderItems = data.get("orderItems", [])
         if not orderItems:
             return Response(
@@ -157,8 +159,6 @@ class AddOrderItemsView(APIView):
             totalPrice=data["totalPrice"],
             itemsPrice=data["itemsPrice"],
         )
-
-        # (2) Create shipping address
         ShippingAddress.objects.create(
             order=order,
             address=data["shippingAddress"]["address"],
@@ -166,23 +166,53 @@ class AddOrderItemsView(APIView):
             postalCode=data["shippingAddress"]["postalCode"],
             country=data["shippingAddress"]["country"],
         )
-
-        # (3) Create order items and set order to orderItem relationship
-        for item_data in orderItems:
-            product = Product.objects.get(_id=item_data["productId"])
-            order_item = OrderItem.objects.create(
-                product=product,
-                order=order,
-                name=product.name,
-                color=item_data["color"],
-                size=item_data["size"],
-                qty=int(item_data["qty"]),
-                price=item_data["price"],
-                thumbnail=product.thumbnail_url,
-            )
-            product.countInStock -= order_item.qty
-            product.save()
-
+        print("1")
+        for item in orderItems:
+            try:
+                print("2")
+                product = Product.objects.get(_id=item["productId"])
+            except Product.DoesNotExist:
+                return Response(
+                    {"detail": f"Product with id {item['productId']} not found."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            print("3")
+            # If the item contains an "items" key, iterate over each variant.
+            if "variations" in item and isinstance(item["variations"], list):
+                print("4")
+                for variant in item["variations"]:
+                    qty = int(variant.get("qty", 0))
+                    if qty <= 0:
+                        continue  # Skip variants with no quantity
+                    OrderItem.objects.create(
+                        product=product,
+                        order=order,
+                        name=product.name,
+                        color=variant.get("color", ""),
+                        size=variant.get("size", ""),
+                        qty=qty,
+                        price=item.get("price", product.price),
+                        thumbnail=product.thumbnail_url,
+                    )
+                    product.countInStock -= qty
+                    product.save()
+            else:
+                print("5")
+                # Flat structure for a single variant order item.
+                qty = int(item.get("qty", 0))
+                if qty > 0:
+                    OrderItem.objects.create(
+                        product=product,
+                        order=order,
+                        name=product.name,
+                        color=item.get("color", ""),
+                        size=item.get("size", ""),
+                        qty=qty,
+                        price=item.get("price", product.price),
+                        thumbnail=product.thumbnail_url,
+                    )
+                    product.countInStock -= qty
+                    product.save()
         serializer = OrderSerializer(order, many=False)
         return Response(serializer.data)
 
