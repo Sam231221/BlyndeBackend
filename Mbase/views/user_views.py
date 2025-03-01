@@ -53,7 +53,12 @@ def login_user(request):
 
     if missing_fields:
         return Response(
-            {"errors": {field: f"{field} is required" for field in missing_fields}},
+            {
+                "errors": {
+                    field: f"{field.capitalize()} is required"
+                    for field in missing_fields
+                }
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -88,7 +93,7 @@ def login_user(request):
 
         else:
             return Response(
-                {"errors": {"general": "Invalid credentials"}},
+                {"errors": {"general": "Invalid Credentials Provided."}},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -109,7 +114,12 @@ def register_user(request):
     missing_fields = [field for field in required_fields if not data.get(field)]
     if missing_fields:
         return Response(
-            {"errors": {field: f"{field} is required" for field in missing_fields}},
+            {
+                "errors": {
+                    field: f"{field.capitalize()} is required"
+                    for field in missing_fields
+                }
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -134,7 +144,7 @@ def register_user(request):
 
         if User.objects.filter(email=data["email"]).exists():
             return Response(
-                {"detail": "User with this email already exists"},
+                {"errors": {"general": "User with this email already exists"}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -153,15 +163,14 @@ def register_user(request):
 
     except IntegrityError:
         return Response(
-            {"errors": {"email": "User with this email already exists"}},
+            {"errors": {"general": "User with this email already exists"}},
             status=status.HTTP_400_BAD_REQUEST,
         )
     except Exception as e:
         return Response(
             {
                 "errors": {
-                    "server": "An error occurred while creating the user",
-                    "detail": str(e),
+                    "general": "An error occurred while creating the user",
                 }
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -203,62 +212,71 @@ def request_password_reset(request):
     email = request.data.get("email")
     if not email:
         return Response(
-            {"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST
+            {"errors": {"email": "Email is required"}},
+            status=status.HTTP_400_BAD_REQUEST,
         )
+
     user = User.objects.filter(email=email).first()
-    if user:
-        try:
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_link = f"{settings.FRONTEND_BASE_URL}/request-reset-password/confirm?token={uid}-{token}"
 
-            subject = "Password Reset Request"
-            heading = "Password Reset Request"
-            message = f"We have received a request to reset your password. Please click on the link below to reset your password. If you didn’t request this, you can ignore this email."
-            from_email = settings.EMAIL_HOST_USER
-            recipient_list = [user.email]
-            html_content = render_to_string(
-                "email/template1.html",
-                {
-                    "subject": subject,
-                    "heading": heading,
-                    "recipient_name": user.first_name,
-                    "message_content": message,
-                    "cta_button": True,
-                    "cta_url": reset_link,
-                    "cta_text": "Reset Password",
-                    "sender_name": from_email,
-                },
-            )
-            text_content = render_to_string(
-                "email/template1.html",
-                {
-                    "subject": subject,
-                    "heading": heading,
-                    "recipient_name": user.first_name,
-                    "message_content": message,
-                    "cta_button": True,
-                    "cta_url": reset_link,
-                    "cta_text": "Reset Password",
-                    "sender_name": from_email,
-                },
-            )
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_content,
-                from_email=f"<{settings.EMAIL_HOST_USER}>",
-                to=recipient_list,
-            )
-            email.attach_alternative(html_content, "text/html")
-            email.send(fail_silently=False)
+    if not user:
+        logger.warning(f"Password reset requested for non-existent email: {email}")
+        return Response(
+            {"errors": {"general": "User with this email does not exist"}},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-            logger.info("Password reset email sent successfully to %s", user.email)
-        except Exception as e:
+    try:
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_link = f"{settings.FRONTEND_BASE_URL}/request-reset-password/confirm?token={uid}-{token}"
 
-            logger.error(f"Error sending password reset email: {e}")
+        subject = "Password Reset Request"
+        from_email = settings.EMAIL_HOST_USER
+        recipient_list = [user.email]
+
+        context = {
+            "subject": subject,
+            "heading": "Password Reset Request",
+            "recipient_name": user.first_name,
+            "message_content": "We have received a request to reset your password. "
+            "Please click on the link below to reset your password. "
+            "If you didn’t request this, you can ignore this email.",
+            "cta_button": True,
+            "cta_url": reset_link,
+            "cta_text": "Reset Password",
+            "sender_name": from_email,
+        }
+
+        html_content = render_to_string("email/template1.html", context)
+        text_content = (
+            f"Hello {user.first_name},\n\n"
+            f"We have received a request to reset your password. "
+            f"Click the link below to reset your password:\n\n"
+            f"{reset_link}\n\n"
+            f"If you didn’t request this, you can ignore this email."
+        )
+
+        # Send email
+        email_message = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=from_email,
+            to=recipient_list,
+        )
+        email_message.attach_alternative(html_content, "text/html")
+        email_message.send(fail_silently=False)
+
+        logger.info("Password reset email sent successfully to %s", user.email)
+
+    except Exception as e:
+        logger.error(f"Error sending password reset email: {e}")
+        return Response(
+            {"errors": {"general": "An error occurred. Please try again later."}},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return Response(
-        {"detail": "If the email exists, a reset link has been sent."},
+        {"detail": "A reset link has been sent to your email."},
         status=status.HTTP_200_OK,
     )
 
