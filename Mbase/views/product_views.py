@@ -122,7 +122,8 @@ class HighestPriorityDiscountAPIView(APIView):
 
         if not highest_discount:
             return Response(
-                {"message": "No active discount found"}, status=status.HTTP_200_OK
+                {"errors": {"general": "No active discount found"}},
+                status=status.HTTP_200_OK,
             )
 
         return Response(

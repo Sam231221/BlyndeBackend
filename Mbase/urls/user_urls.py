@@ -26,11 +26,6 @@ urlpatterns = [
         name="verify_email",
     ),
     path("wishlist/", views.wishlist_items, name="wishlist-list"),
-    path(
-        "wishlist/delete/<int:pk>/",
-        views.wishlist_item_delete,
-        name="wishlist-remove",
-    ),
     # keep this at last since it can also match /api/users/list/, /api/users/create/ etc
     path("<str:first_name>/", views.getUserDetails, name="user-details"),
 ]

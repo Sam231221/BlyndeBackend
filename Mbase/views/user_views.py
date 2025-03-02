@@ -443,18 +443,17 @@ def wishlist_items(request):
         )
 
     elif request.method == "POST":
-        product_id = request.data.get("product")
-        if not product_id:
+        wishlistItemId = request.data.get("wishlistItemId")
+
+        if not wishlistItemId:
             return Response(
-                {"detail": "Product ID is required."},
+                {"errors": {"general": "Wishlist item not found."}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         try:
-            wishlist_item = Wishlist.objects.get(
-                user=request.user, product_id=product_id
-            )
-
+            wishlist_item = Wishlist.objects.filter(
+                user=request.user, pk=wishlistItemId
+            ).first()
             wishlist_item.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -469,22 +468,9 @@ def wishlist_items(request):
 
         except Exception as e:
             return Response(
-                {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"errors": {"general": str(e)}},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def wishlist_item_delete(request, pk):
-    try:
-        wishlist_item = Wishlist.objects.get(pk=pk, user=request.user)
-    except Wishlist.DoesNotExist:
-        return Response(
-            {"detail": "Wishlist item not found."}, status=status.HTTP_404_NOT_FOUND
-        )
-
-    wishlist_item.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["GET"])
