@@ -257,6 +257,7 @@ class WishlistCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context["request"].user
         product = validated_data["product"]
+        print("asdsas:", product)
         try:
             wishlist_item = Wishlist.objects.create(user=user, product=product)
             return wishlist_item

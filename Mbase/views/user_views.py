@@ -443,21 +443,22 @@ def wishlist_items(request):
         )
 
     elif request.method == "POST":
-        wishlistItemId = request.data.get("wishlistItemId")
-
-        if not wishlistItemId:
+        productId = request.data.get("product")
+        print(productId)
+        if not productId:
             return Response(
                 {"errors": {"general": "Wishlist item not found."}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            wishlist_item = Wishlist.objects.filter(
-                user=request.user, pk=wishlistItemId
-            ).first()
+            print("ldo")
+            wishlist_item = Wishlist.objects.get(user=request.user, product=productId)
+            print(wishlist_item)
             wishlist_item.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         except Wishlist.DoesNotExist:
+            print("outi")
             serializer = WishlistCreateSerializer(
                 data=request.data, context={"request": request}
             )
