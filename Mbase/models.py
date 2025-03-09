@@ -121,7 +121,7 @@ class Product(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     slug = models.SlugField(max_length=255, blank=True)
-    name = models.CharField(max_length=200, null=True, blank=True)
+    name = models.CharField(max_length=200, null=True)
     thumbnail_file_id = models.CharField(null=True, max_length=255, blank=True)
     thumbnail_url = models.URLField(null=True, blank=True)
     brand = models.CharField(max_length=200, null=True, blank=True)
@@ -160,12 +160,10 @@ class Product(models.Model):
         super(Product, self).save(*args, **kwargs)
 
     def update_rating(self):
-        reviews = self.reviews.all()
-        if reviews.exists():
-            self.rating = reviews.aggregate(models.Avg("rating"))["rating__avg"]
-        else:
-
-            self.rating = None
+        avg_rating = self.reviews.aggregate(avg_rating=models.Avg("rating"))[
+            "avg_rating"
+        ]
+        self.rating = avg_rating if avg_rating is not None else None
         self.save()
 
     def thumbnail_preview(self):

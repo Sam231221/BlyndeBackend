@@ -143,7 +143,6 @@ class AddOrderItemsView(APIView):
     def post(self, request):
         user = request.user
         data = request.data
-        print("DATA:", data)
         orderItems = data.get("orderItems", [])
         if not orderItems:
             return Response(
@@ -166,20 +165,16 @@ class AddOrderItemsView(APIView):
             postalCode=data["shippingAddress"]["postalCode"],
             country=data["shippingAddress"]["country"],
         )
-        print("1")
         for item in orderItems:
             try:
-                print("2")
                 product = Product.objects.get(_id=item["productId"])
             except Product.DoesNotExist:
                 return Response(
                     {"detail": f"Product with id {item['productId']} not found."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            print("3")
             # If the item contains an "items" key, iterate over each variant.
             if "variations" in item and isinstance(item["variations"], list):
-                print("4")
                 for variant in item["variations"]:
                     qty = int(variant.get("qty", 0))
                     if qty <= 0:
@@ -197,7 +192,6 @@ class AddOrderItemsView(APIView):
                     product.countInStock -= qty
                     product.save()
             else:
-                print("5")
                 # Flat structure for a single variant order item.
                 qty = int(item.get("qty", 0))
                 if qty > 0:

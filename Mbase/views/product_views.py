@@ -230,14 +230,14 @@ class RelatedProductsAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         product_slug = self.kwargs["product_slug"]
+
         product = Product.objects.get(slug=product_slug)
         related_products = Product.objects.filter(
             Q(categories__in=product.categories.all())
             | Q(colors__in=product.colors.all()),
             Q(brand=product.brand),
         ).exclude(slug=product_slug)
-
-        return related_products.distinct()
+        return related_products.distinct()[:4]
 
 
 class RecentProductsView(generics.ListAPIView):
