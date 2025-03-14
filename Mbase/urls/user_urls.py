@@ -26,6 +26,16 @@ urlpatterns = [
         name="verify_email",
     ),
     path("wishlist/", views.wishlist_items, name="wishlist-list"),
+    path(
+        "<int:user_id>/orders/all/",
+        views.get_user_all_orders,
+        name="user_all_orders",
+    ),
+    path(
+        "<int:user_id>/orders/recent/",
+        views.get_user_recent_orders,
+        name="user_recent_orders",
+    ),
     # keep this at last since it can also match /api/users/list/, /api/users/create/ etc
     path("<str:first_name>/", views.getUserDetails, name="user-details"),
 ]

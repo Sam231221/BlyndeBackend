@@ -2,7 +2,8 @@ import logging
 import re
 import base64
 from datetime import timedelta
-
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from django.db.utils import IntegrityError
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
@@ -31,9 +32,10 @@ from Mbase.serializers import (
     UserSerializerWithToken,
     WishlistSerializer,
     WishlistCreateSerializer,
+    OrderSerializer,
 )
 from Mbase.mixins.imagekit import imagekit
-from Mbase.models import Wishlist
+from Mbase.models import Wishlist, Order
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -394,7 +396,6 @@ def refresh_token_view(request):
 
 
 @api_view(["GET", "PUT"])
-@parser_classes([MultiPartParser, FormParser])
 @permission_classes([IsAuthenticated])
 def get_user_profile(request):
     user = request.user
@@ -405,27 +406,36 @@ def get_user_profile(request):
 
     elif request.method == "PUT":
         data = request.data
-
         user.first_name = data.get("first_name", user.first_name)
         user.last_name = data.get("last_name", user.last_name)
         user.email = data.get("email", user.email)
-
-        avatar_file = request.FILES.get("avatarU")
+        avatar_file = request.FILES.get("avatar")
 
         if avatar_file:
-            if user.profile_pic_id:
-                imagekit.delete_file(user.profile_pic_id)
-            upload_response = imagekit.upload_file(
-                file=base64.b64encode(avatar_file.read()).decode("utf-8"),
-                file_name=f"avataR- {avatar_file.name}",
-                options=UploadFileRequestOptions(
-                    use_unique_file_name=False,
-                    folder="/Blynde/Users/",
-                ),
-            )
-            user.profile_pic_id = upload_response.file_id
-            user.profile_pic_url = upload_response.url
-        user.save()
+            try:
+                if user.profile_pic_id:
+                    imagekit.delete_file(user.profile_pic_id)
+                    upload_response = imagekit.upload_file(
+                        file=base64.b64encode(avatar_file.read()).decode("utf-8"),
+                        file_name=f"avataR-{avatar_file.name}",
+                        options=UploadFileRequestOptions(
+                            use_unique_file_name=False,
+                            folder="/Blynde/Users/",
+                        ),
+                    )
+                    user.profile_pic_id = upload_response.file_id
+                    user.profile_pic_url = upload_response.url
+                    user.save()
+            except Exception as e:
+                logger.error(f"Image upload failed: {str(e)}")
+                return Response(
+                    {
+                        "errors": {
+                            "general": "An error occurred while uploading the image"
+                        }
+                    },
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -523,3 +533,31 @@ def deleteUser(request, pk):
     userForDeletion = User.objects.get(id=pk)
     userForDeletion.delete()
     return Response("User was deleted", status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_all_orders(self, request, user_id):
+    try:
+        user = get_object_or_404(User, pk=user_id)
+        orders = Order.objects.filter(user=user).order_by("-createdAt")
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_recent_orders(request, user_id):
+    try:
+        user = get_object_or_404(User, pk=user_id)
+
+        recent_orders = Order.objects.filter(
+            user=user, createdAt__gte=timezone.now() - timedelta(days=7)
+        ).order_by("-createdAt")
+
+        serializer = OrderSerializer(recent_orders, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -8,7 +8,7 @@ urlpatterns = [
         name="order-apply-coupon",
     ),
     path("add/", views.AddOrderItemsView.as_view(), name="order-add"),
-    path("myorders/", views.GetMyOrdersView.as_view(), name="get-my-orders"),
+    path("myorders/", views.GetUserOrdersView.as_view(), name="get-my-orders"),
     path(
         "<str:order_number>/deliver/",
         views.UpdateOrderToDeliveredView.as_view(),

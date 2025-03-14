@@ -44,7 +44,7 @@ class GetOrderByOrderNumberView(APIView):
             )
 
 
-class GetMyOrdersView(APIView):
+class GetUserOrdersView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
