@@ -546,7 +546,8 @@ class Review(models.Model):
 class DiscountOffers(models.Model):
     _id = models.AutoField(primary_key=True, editable=False)
     name = models.CharField(max_length=200, null=True, blank=True)
-    thumbnail = models.ImageField(null=True)
+    thumbnail_id = models.CharField(null=True, max_length=255, blank=True)
+    thumbnail_url = models.URLField(null=True, blank=True)
     price = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     on_sale = models.BooleanField(default=False)
@@ -559,3 +560,10 @@ class DiscountOffers(models.Model):
 
     def __str__(self):
         return self.name
+
+    def thumbnail_preview(self):
+        if self.thumbnail_url:
+            return mark_safe(
+                f'<img src="{self.thumbnail_url}" style="object-fit:contain;" width="120" height="80" />'
+            )
+        return "No Image"

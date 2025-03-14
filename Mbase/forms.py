@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import UserChangeForm
 from django import forms
-from .models import Genre, User, Product, ImageAlbum
+from .models import Genre, User, Product, ImageAlbum, DiscountOffers
 
 
 class UserAdminForm(UserChangeForm):
@@ -18,6 +18,15 @@ class GenreAdminForm(forms.ModelForm):
 
     class Meta:
         model = Genre
+        fields = "__all__"
+
+
+class DiscountOfferAdminForm(forms.ModelForm):
+    thumbnail = forms.ImageField(required=False, label="Upload New Thumbnail")
+    remove_thumbnail = forms.BooleanField(required=False, label="Remove Current Image")
+
+    class Meta:
+        model = DiscountOffers
         fields = "__all__"
 
 

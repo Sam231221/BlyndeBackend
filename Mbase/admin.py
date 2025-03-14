@@ -20,13 +20,18 @@ from .models import (
     Coupon,
     ContentType,
 )
-from .forms import GenreAdminForm, UserAdminForm, ProductAdminForm, ImageAlbumAdminForm
+from .forms import (
+    GenreAdminForm,
+    UserAdminForm,
+    DiscountOfferAdminForm,
+    ProductAdminForm,
+    ImageAlbumAdminForm,
+)
 from .mixins.imagekit import ImageKitMixin
 
 admin.site.register(
     (
         Category,
-        DiscountOffers,
         ContentType,
         Wishlist,
         Size,
@@ -230,6 +235,57 @@ class CouponAdmin(admin.ModelAdmin):
         "valid_to",
     )
     search_fields = ("code", "discount__discount_type", "valid_from", "valid_to")
+
+
+@admin.register(DiscountOffers)
+class DiscountOfferAdmin(admin.ModelAdmin, ImageKitMixin):
+    form = DiscountOfferAdminForm
+    list_display = ("name", "thumbnail_preview")
+    readonly_fields = ("thumbnail_preview",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "thumbnail",
+                    "thumbnail_preview",
+                    "remove_thumbnail",
+                    "description",
+                )
+            },
+        ),
+        (
+            "Duration",
+            {
+                "fields": (
+                    "start_date",
+                    "end_date",
+                )
+            },
+        ),
+        ("Pricing", {"fields": ("price", "on_sale", "countInStock")}),
+    )
+
+    def save_model(self, request, obj, form, change):
+        if form.cleaned_data.get("remove_thumbnail"):
+            if obj.thumbnail_id:
+                self._delete_imagekit_file(obj.thumbnail_id)
+                obj.thumbnail_id = ""
+                obj.thumbnail_url = ""
+
+        new_image = form.cleaned_data.get("thumbnail")
+        if new_image:
+            if change and obj.thumbnail_id:
+                self._delete_imagekit_file(obj.thumbnail_id)
+
+            upload_response = self._upload_to_imagekit(
+                new_image, "/Blynde/DiscountOffers/"
+            )
+            obj.thumbnail_id = upload_response.file_id
+            obj.thumbnail_url = upload_response.url
+
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Genre)
