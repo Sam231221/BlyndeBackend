@@ -79,15 +79,14 @@ def register_user(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user = User(
+        user = User.objects.create_user(
             username=data["username"],
             first_name=data["firstName"],
             last_name=data["lastName"],
-            email=data["email"],
+            email=data["email"].lower(),
+            password=data["password"],
+            agreed_to_terms=True,
         )
-        user.set_password(data["password"])
-        user.agreed_to_terms = True
-        user.save()
 
         serializer = UserSerializerWithToken(user, many=False)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -101,7 +100,7 @@ def register_user(request):
         return Response(
             {
                 "errors": {
-                    "general": "An error occurred while creating the user",
+                    "general": str(e),
                 }
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -137,7 +136,7 @@ def login_user(request):
         if user:
             if not user.email_verified:
                 return Response(
-                    {"errors": {"general": "User account is verified yet."}},
+                    {"errors": {"general": "User account is not verified yet."}},
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
 
@@ -189,7 +188,7 @@ def logout_user(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
     except Exception as e:
-        logger.exception("An unexpected error occurred during logout")
+        logger.exception(f"Unexpected logout error: {e}")
         return Response(
             {"error": "An unexpected error occurred"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -200,7 +199,6 @@ def logout_user(request):
 @permission_classes([AllowAny])
 def refresh_token_view(request):
     refresh_token = request.data.get("refresh")
-    print("rndo:", refresh_token)
     if not refresh_token:
         return Response(
             {"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST
@@ -208,7 +206,6 @@ def refresh_token_view(request):
 
     try:
         refresh = RefreshToken(refresh_token)
-        print("rndo2:", refresh)
         if hasattr(refresh, "blacklist"):
             refresh.blacklist()
         new_refresh = RefreshToken.for_user(refresh.user)
