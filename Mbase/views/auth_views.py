@@ -12,14 +12,13 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
-
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.exceptions import AuthenticationFailed
 
 from Mbase.serializers import (
     UserSerializerWithToken,
@@ -199,6 +198,7 @@ def logout_user(request):
 @permission_classes([AllowAny])
 def refresh_token_view(request):
     refresh_token = request.data.get("refresh")
+
     if not refresh_token:
         return Response(
             {"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST
@@ -208,7 +208,21 @@ def refresh_token_view(request):
         refresh = RefreshToken(refresh_token)
         if hasattr(refresh, "blacklist"):
             refresh.blacklist()
-        new_refresh = RefreshToken.for_user(refresh.user)
+
+        user_id = refresh.payload.get("user_id")
+        if not user_id:
+            return Response(
+                {"error": "Invalid token: user ID missing"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        new_refresh = RefreshToken.for_user(user)
 
         return Response(
             {
@@ -218,8 +232,11 @@ def refresh_token_view(request):
             status=status.HTTP_200_OK,
         )
 
-    except Exception as e:
-        raise AuthenticationFailed("Invalid or expired refresh token")
+    except Exception:
+        return Response(
+            {"error": "Invalid or expired refresh token"},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
 
 
 @api_view(["POST"])
