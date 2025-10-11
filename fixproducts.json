@@ -1,0 +1,951 @@
+[
+  {
+    "model": "Mbase.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$TT6Rwyl2GOgi3Pp3YmJLYZ$4OS6vhw+O4xVyqPA+MULVVRnatjEjyPsJ2r0T5TQVlM=",
+      "last_login": "2025-10-11T10:58:25.551Z",
+      "is_superuser": true,
+      "username": "samirshahi9882@gmail.com",
+      "first_name": "Sameer",
+      "last_name": "Shahi",
+      "email": "samirshahi9882@gmail.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2025-01-29T17:23:19Z",
+      "profile_pic_id": "67d452bd432c47641660bb5d",
+      "email_verified": true,
+      "profile_pic_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Users/avataR-blog-1.jpg",
+      "agreed_to_terms": true,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "Mbase.user",
+    "pk": 12,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$KfSCOg6docSjKGRrCocEAT$l56bXqZ1KXzEcOu1e0rdRRfuCGasQx3tSe4aM6Kjxcs=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "sameershahithakuri123@gmail.com",
+      "first_name": "erv",
+      "last_name": "Sameer",
+      "email": "sameershahithakuri123@gmail.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-02-19T07:31:34.495Z",
+      "profile_pic_id": null,
+      "email_verified": false,
+      "profile_pic_url": null,
+      "agreed_to_terms": true,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "Mbase.user",
+    "pk": 13,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$5G4W6BrCfS2lCl1pkkcuBG$IHrB3lpjxsviR8ft8eJb6z9LLlYGiXefD6yfqpsl7hU=",
+      "last_login": null,
+      "is_superuser": false,
+      "username": "samirsssshahi9882@gmail.com",
+      "first_name": "Sameer",
+      "last_name": "Shahi",
+      "email": "samirsssshahi9882@gmail.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2025-03-01T09:54:57.807Z",
+      "profile_pic_id": null,
+      "email_verified": false,
+      "profile_pic_url": null,
+      "agreed_to_terms": true,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "Mbase.size",
+    "pk": 1,
+    "fields": {
+      "name": "S",
+      "slug": null,
+      "description": "Small"
+    }
+  },
+  {
+    "model": "Mbase.size",
+    "pk": 2,
+    "fields": {
+      "name": "M",
+      "slug": null,
+      "description": "Medium"
+    }
+  },
+  {
+    "model": "Mbase.size",
+    "pk": 3,
+    "fields": {
+      "name": "XS",
+      "slug": null,
+      "description": "Extra Small"
+    }
+  },
+  {
+    "model": "Mbase.size",
+    "pk": 4,
+    "fields": {
+      "name": "L",
+      "slug": null,
+      "description": "Large"
+    }
+  },
+  {
+    "model": "Mbase.size",
+    "pk": 5,
+    "fields": {
+      "name": "Xl",
+      "slug": null,
+      "description": "Extra Large"
+    }
+  },
+  {
+    "model": "Mbase.size",
+    "pk": 6,
+    "fields": {
+      "name": "XLL",
+      "slug": null,
+      "description": "Extra Extra Large"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 1,
+    "fields": {
+      "name": "Red",
+      "slug": null,
+      "hex_code": "#FF0000"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 2,
+    "fields": {
+      "name": "Blue",
+      "slug": null,
+      "hex_code": "#0000FF"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 3,
+    "fields": {
+      "name": "Yellow",
+      "slug": null,
+      "hex_code": "#FFFF00"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 4,
+    "fields": {
+      "name": "Green",
+      "slug": null,
+      "hex_code": "#00FF00"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 5,
+    "fields": {
+      "name": "Cyan",
+      "slug": null,
+      "hex_code": "#00FFFF"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 6,
+    "fields": {
+      "name": "Black",
+      "slug": null,
+      "hex_code": "#000000"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 7,
+    "fields": {
+      "name": "White",
+      "slug": null,
+      "hex_code": "#FFFFFF"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 8,
+    "fields": {
+      "name": "Pink",
+      "slug": null,
+      "hex_code": "#FFC0CB"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 9,
+    "fields": {
+      "name": "Gray",
+      "slug": null,
+      "hex_code": "#808080"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 10,
+    "fields": {
+      "name": "Orange",
+      "slug": null,
+      "hex_code": "#FFA500"
+    }
+  },
+  {
+    "model": "Mbase.color",
+    "pk": 11,
+    "fields": {
+      "name": "Purple",
+      "slug": null,
+      "hex_code": "#800080"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 1,
+    "fields": {
+      "name": "Men",
+      "parent": null,
+      "slug": "men"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 2,
+    "fields": {
+      "name": "Women",
+      "parent": null,
+      "slug": "women"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 3,
+    "fields": {
+      "name": "Pants",
+      "parent": 1,
+      "slug": "pants-men"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 4,
+    "fields": {
+      "name": "Pants",
+      "parent": 2,
+      "slug": "pants-women"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 5,
+    "fields": {
+      "name": "Packs",
+      "parent": null,
+      "slug": null
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 6,
+    "fields": {
+      "name": "Deals",
+      "parent": null,
+      "slug": null
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 7,
+    "fields": {
+      "name": "Shirts",
+      "parent": 1,
+      "slug": "shirts-men"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 8,
+    "fields": {
+      "name": "Shirts",
+      "parent": 2,
+      "slug": "shirts-women"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 9,
+    "fields": {
+      "name": "Shoes",
+      "parent": 2,
+      "slug": "shoes-women"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 10,
+    "fields": {
+      "name": "Shoes",
+      "parent": 1,
+      "slug": "shoes-men"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 11,
+    "fields": {
+      "name": "Watches",
+      "parent": 2,
+      "slug": "watches-women"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 12,
+    "fields": {
+      "name": "Watches",
+      "parent": 1,
+      "slug": "watches-men"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 13,
+    "fields": {
+      "name": "Necklaces",
+      "parent": 2,
+      "slug": "necklaces-women"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 14,
+    "fields": {
+      "name": "Jacket",
+      "parent": 1,
+      "slug": "jacket-men"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 15,
+    "fields": {
+      "name": "Jacket",
+      "parent": 2,
+      "slug": "jacket-women"
+    }
+  },
+  {
+    "model": "Mbase.category",
+    "pk": 16,
+    "fields": {
+      "name": "Skirts",
+      "parent": 2,
+      "slug": "skirts-women"
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 1,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Desktop",
+      "slug": "desktop",
+      "category": 3
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 2,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Laptop",
+      "slug": "laptop",
+      "category": 3
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 3,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Camera",
+      "slug": "camera",
+      "category": 3
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 4,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Headphones",
+      "slug": "headphones",
+      "category": 3
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 5,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Formal",
+      "slug": "formal",
+      "category": 1
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 6,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Casual",
+      "slug": "casual",
+      "category": 1
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 8,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Jacket",
+      "slug": "jacket",
+      "category": 1
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 9,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Spectacles",
+      "slug": "spectacles",
+      "category": 1
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 10,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Shoes",
+      "slug": "shoes",
+      "category": 1
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 11,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Ear rings",
+      "slug": "ear-rings",
+      "category": 2
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 12,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "MakeupKit",
+      "slug": "makeupkit",
+      "category": 2
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 13,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Sari",
+      "slug": "sari",
+      "category": 2
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 14,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "One piece",
+      "slug": "one-piece",
+      "category": 2
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 15,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Blankets",
+      "slug": "blankets",
+      "category": 4
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 16,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Bath Towels",
+      "slug": "bath-towels",
+      "category": 4
+    }
+  },
+  {
+    "model": "Mbase.genre",
+    "pk": 17,
+    "fields": {
+      "image_file_id": null,
+      "image_url": null,
+      "name": "Kitchen Containers",
+      "slug": "kitchen-containers",
+      "category": 2
+    }
+  },
+  {
+    "model": "Mbase.product",
+    "pk": 1,
+    "fields": {
+      "user": null,
+      "slug": "slogan-hoodie-with-label-detail",
+      "name": "Slogan Hoodie With Label Detail",
+      "thumbnail_file_id": "67c03b51432c4764163dacda",
+      "thumbnail_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/slogan1-1.webp",
+      "brand": "Nike",
+      "description": null,
+      "rating": null,
+      "price": "300.00",
+      "countInStock": 1,
+      "createdAt": "2025-02-27T10:15:46.424Z",
+      "badge": "Exclusive",
+      "colors": [3],
+      "sizes": [2, 3],
+      "categories": [8, 2],
+      "likes": []
+    }
+  },
+  {
+    "model": "Mbase.product",
+    "pk": 2,
+    "fields": {
+      "user": null,
+      "slug": "river-05-goldstar-full-black-sneakers-for-women",
+      "name": "River 05 Goldstar Full Black Sneakers For Women",
+      "thumbnail_file_id": "67c043ab432c4764166bc895",
+      "thumbnail_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/goldstar1-1.webp",
+      "brand": "GoldStar",
+      "description": null,
+      "rating": null,
+      "price": "500.00",
+      "countInStock": -3,
+      "createdAt": "2025-02-27T10:51:24.923Z",
+      "badge": "Limited Edition",
+      "colors": [6],
+      "sizes": [1, 2],
+      "categories": [1, 10],
+      "likes": []
+    }
+  },
+  {
+    "model": "Mbase.product",
+    "pk": 3,
+    "fields": {
+      "user": null,
+      "slug": "cubitt-smart-watch-ct2s-waterproof-fitness-tracker",
+      "name": "Cubitt Smart Watch CT2S Waterproof Fitness Tracker",
+      "thumbnail_file_id": "67c1f649432c476416dae907",
+      "thumbnail_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/watch1.webp",
+      "brand": "CT2S",
+      "description": null,
+      "rating": null,
+      "price": "300.00",
+      "countInStock": -2,
+      "createdAt": "2025-02-28T17:45:46.930Z",
+      "badge": "Trending",
+      "colors": [1],
+      "sizes": [1, 2],
+      "categories": [1, 11],
+      "likes": []
+    }
+  },
+  {
+    "model": "Mbase.product",
+    "pk": 4,
+    "fields": {
+      "user": null,
+      "slug": "fuzzy-button-up-cardigan",
+      "name": "Fuzzy Button-Up Cardigan",
+      "thumbnail_file_id": "67cdaf07432c4764165a890a",
+      "thumbnail_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/fuzzy1.webp",
+      "brand": "Nike",
+      "description": null,
+      "rating": null,
+      "price": "211.00",
+      "countInStock": 22,
+      "createdAt": "2025-03-09T15:08:56.284Z",
+      "badge": "Trending",
+      "colors": [3],
+      "sizes": [2, 3],
+      "categories": [8, 2],
+      "likes": []
+    }
+  },
+  {
+    "model": "Mbase.discount",
+    "pk": 3,
+    "fields": {
+      "description": "$100 discount on All Products",
+      "content_type": null,
+      "object_id": null,
+      "discount_type": "fixed",
+      "amount": "100.00",
+      "start_date": "2025-02-27T11:16:12Z",
+      "end_date": "2025-03-20T11:16:17Z",
+      "priority": 4,
+      "is_global": true
+    }
+  },
+  {
+    "model": "Mbase.discount",
+    "pk": 4,
+    "fields": {
+      "description": "20% discount on Slogan Hoodie With Label Detail",
+      "content_type": 17,
+      "object_id": 1,
+      "discount_type": "percentage",
+      "amount": "20.00",
+      "start_date": "2025-02-27T11:17:37Z",
+      "end_date": "2025-02-27T11:18:05Z",
+      "priority": 5,
+      "is_global": false
+    }
+  },
+  {
+    "model": "Mbase.order",
+    "pk": 1,
+    "fields": {
+      "order_number": "ORD-1EA150C84B",
+      "user": 1,
+      "paymentMethod": "Esewa",
+      "itemsPrice": "3000.00",
+      "taxPrice": "246.00",
+      "shippingPrice": "10.00",
+      "totalPrice": "3256.00",
+      "status": "Pending",
+      "isPaid": false,
+      "paidAt": null,
+      "isDelivered": false,
+      "deliveredAt": null,
+      "createdAt": "2025-03-01T06:44:07.634Z"
+    }
+  },
+  {
+    "model": "Mbase.order",
+    "pk": 2,
+    "fields": {
+      "order_number": "ORD-AC13689F1B",
+      "user": 1,
+      "paymentMethod": "Esewa",
+      "itemsPrice": "400.00",
+      "taxPrice": "32.80",
+      "shippingPrice": "10.00",
+      "totalPrice": "442.80",
+      "status": "Pending",
+      "isPaid": false,
+      "paidAt": null,
+      "isDelivered": false,
+      "deliveredAt": null,
+      "createdAt": "2025-03-04T11:23:23.048Z"
+    }
+  },
+  {
+    "model": "Mbase.order",
+    "pk": 3,
+    "fields": {
+      "order_number": "ORD-CB80F702FC",
+      "user": 1,
+      "paymentMethod": "Esewa",
+      "itemsPrice": "400.00",
+      "taxPrice": "32.80",
+      "shippingPrice": "10.00",
+      "totalPrice": "442.80",
+      "status": "Pending",
+      "isPaid": false,
+      "paidAt": null,
+      "isDelivered": false,
+      "deliveredAt": null,
+      "createdAt": "2025-03-13T15:37:54.246Z"
+    }
+  },
+  {
+    "model": "Mbase.order",
+    "pk": 4,
+    "fields": {
+      "order_number": "ORD-5C0B37FD0B",
+      "user": 1,
+      "paymentMethod": "Esewa",
+      "itemsPrice": "99.00",
+      "taxPrice": "8.12",
+      "shippingPrice": "0.00",
+      "totalPrice": "107.12",
+      "status": "Pending",
+      "isPaid": false,
+      "paidAt": null,
+      "isDelivered": false,
+      "deliveredAt": null,
+      "createdAt": "2025-03-14T14:20:47.167Z"
+    }
+  },
+  {
+    "model": "Mbase.orderitem",
+    "pk": 1,
+    "fields": {
+      "product": 2,
+      "order": 1,
+      "name": "River 05 Goldstar Full Black Sneakers For Women",
+      "color": "Black",
+      "size": "S",
+      "qty": 5,
+      "price": "400.00",
+      "thumbnail": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/goldstar1-1.webp"
+    }
+  },
+  {
+    "model": "Mbase.orderitem",
+    "pk": 2,
+    "fields": {
+      "product": 3,
+      "order": 1,
+      "name": "Cubitt Smart Watch CT2S Waterproof Fitness Tracker",
+      "color": "Red",
+      "size": "S",
+      "qty": 2,
+      "price": "200.00",
+      "thumbnail": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/watch1.webp"
+    }
+  },
+  {
+    "model": "Mbase.orderitem",
+    "pk": 3,
+    "fields": {
+      "product": 3,
+      "order": 1,
+      "name": "Cubitt Smart Watch CT2S Waterproof Fitness Tracker",
+      "color": "Red",
+      "size": "M",
+      "qty": 3,
+      "price": "200.00",
+      "thumbnail": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/watch1.webp"
+    }
+  },
+  {
+    "model": "Mbase.orderitem",
+    "pk": 4,
+    "fields": {
+      "product": 1,
+      "order": 2,
+      "name": "Slogan Hoodie With Label Detail",
+      "color": "Yellow",
+      "size": "M",
+      "qty": 2,
+      "price": "200.00",
+      "thumbnail": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/slogan1-1.webp"
+    }
+  },
+  {
+    "model": "Mbase.orderitem",
+    "pk": 5,
+    "fields": {
+      "product": 1,
+      "order": 3,
+      "name": "Slogan Hoodie With Label Detail",
+      "color": "Yellow",
+      "size": "M",
+      "qty": 2,
+      "price": "200.00",
+      "thumbnail": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/slogan1-1.webp"
+    }
+  },
+  {
+    "model": "Mbase.orderitem",
+    "pk": 6,
+    "fields": {
+      "product": 2,
+      "order": 4,
+      "name": "River 05 Goldstar Full Black Sneakers For Women",
+      "color": "",
+      "size": "",
+      "qty": 3,
+      "price": "33.00",
+      "thumbnail": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-None/goldstar1-1.webp"
+    }
+  },
+  {
+    "model": "Mbase.shippingaddress",
+    "pk": 1,
+    "fields": {
+      "order": 1,
+      "address": "Machhapuchre Tole-3",
+      "city": "Pokhara",
+      "postalCode": "3423",
+      "country": "Nepal",
+      "shippingPrice": null
+    }
+  },
+  {
+    "model": "Mbase.shippingaddress",
+    "pk": 2,
+    "fields": {
+      "order": 2,
+      "address": "Machhapuchre Tole-3",
+      "city": "Pokhara",
+      "postalCode": "3423",
+      "country": "Nepal",
+      "shippingPrice": null
+    }
+  },
+  {
+    "model": "Mbase.shippingaddress",
+    "pk": 3,
+    "fields": {
+      "order": 3,
+      "address": "Machhapuchre Tole-3",
+      "city": "Pokhara",
+      "postalCode": "3423",
+      "country": "Nepal",
+      "shippingPrice": null
+    }
+  },
+  {
+    "model": "Mbase.shippingaddress",
+    "pk": 4,
+    "fields": {
+      "order": 4,
+      "address": "Machhapuchre Tole-3",
+      "city": "Pokhara",
+      "postalCode": "3423",
+      "country": "Nepal",
+      "shippingPrice": null
+    }
+  },
+  {
+    "model": "Mbase.coupon",
+    "pk": 1,
+    "fields": {
+      "code": "SAVE30",
+      "discount": 4,
+      "max_uses": 3,
+      "used": 0,
+      "valid_from": "2025-02-28T10:02:21Z",
+      "valid_to": "2025-03-04T10:02:32Z",
+      "is_active": true,
+      "coupon_scope": "product"
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 1,
+    "fields": {
+      "image_file_id": "67c03b65432c4764163e3773",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-1/ImageAlbums/slogan1-1.webp",
+      "product": 1
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 2,
+    "fields": {
+      "image_file_id": "67c03b76432c4764163e91e5",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-1/ImageAlbums/slogan1-2.webp",
+      "product": 1
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 3,
+    "fields": {
+      "image_file_id": "67c043c1432c4764166c4e75",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-2/ImageAlbums/goldstar1-1.webp",
+      "product": 2
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 4,
+    "fields": {
+      "image_file_id": "67c1f67c432c476416db8bec",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-3/ImageAlbums/watch1.webp",
+      "product": 3
+    }
+  },
+  {
+    "model": "Mbase.imagealbum",
+    "pk": 5,
+    "fields": {
+      "image_file_id": "67cdb183432c4764166d632e",
+      "image_url": "https://ik.imagekit.io/brjkcblmz/Blynde/Products/Pd-4/ImageAlbums/fuzzy1.webp",
+      "product": 4
+    }
+  },
+  {
+    "model": "Mbase.wishlist",
+    "pk": 20,
+    "fields": {
+      "user": 1,
+      "product": 3,
+      "added_at": "2025-03-05T08:29:55.818Z"
+    }
+  },
+  {
+    "model": "Mbase.discountoffers",
+    "pk": 2,
+    "fields": {
+      "name": "discount1",
+      "thumbnail_id": "67d436b3432c476416cdc369",
+      "thumbnail_url": "https://ik.imagekit.io/brjkcblmz/Blynde/DiscountOffers/blog-1.jpg",
+      "price": "33.00",
+      "description": "edcsw",
+      "on_sale": true,
+      "sale_price": null,
+      "countInStock": 22,
+      "start_date": "2025-03-13T13:29:26Z",
+      "end_date": "2025-03-28T13:29:29Z"
+    }
+  }
+]
